@@ -3,12 +3,6 @@ export const ROUTES = {
   LOGIN: "/login",
   LOGIN_CALLBACK: "/auth/github/callback",
   OTHER: '/not-found',
-  ADMIN: "/a",
-  STUDENT: "/s",
-};
-
-export const NESTED_ROUTES = {
-  DASHBOARD: "/dashboard",
-  ID: ':id',
-  PROFILE: 'profile',
+  ABOUT: "/about",
+  PROFILE: ":id/profile",
 };

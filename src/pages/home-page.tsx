@@ -6,6 +6,7 @@ import { ROUTES } from "@/constants/routes";
 import { useGetUserDetails } from "@/utils/use-get-user-details";
 import { LoadingPage } from "./loading-page";
 import { useAtom } from "jotai";
+import { Header } from "@/custom/header";
 
 const HomePage = (): JSX.Element => {
   const { data: userDetails, status, isFetching, error } = useGetUserDetails();
@@ -49,7 +50,7 @@ const HomePage = (): JSX.Element => {
 
   return (
     <Container className="bg-accent-foreground min-w-screen">
-      <div>HEADER GOES HERE (For logout and shit)</div>
+      <Header imgSource={userDetails.avatar_url} />
       <Box
         sx={{
           display: "flex",
@@ -59,7 +60,7 @@ const HomePage = (): JSX.Element => {
           minHeight: "100vh",
           textAlign: "center",
           padding: "2rem",
-          color: "white"
+          color: "white",
         }}
       >
         <Typography variant="h2" component="h1" gutterBottom>

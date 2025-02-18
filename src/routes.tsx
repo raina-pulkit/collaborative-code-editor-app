@@ -5,6 +5,8 @@ const LoginPage = lazy(() => import("./pages/login-page"));
 const NotFound = lazy(() => import("./pages/not-found"));
 const HomePage = lazy(() => import("./pages/home-page"));
 const CallbackPage = lazy(() => import("./pages/login-callback-page"));
+const AboutPage = lazy(() => import("./pages/about-page"));
+const ProfilePage = lazy(() => import("./pages/profile-page"));
 
 export interface RouteDetails {
   path: string;
@@ -36,6 +38,16 @@ export const homeRoutes: RouteDetails[] = [
     component: HomePage,
     children: [],
   },
+  {
+    path: ROUTES.PROFILE,
+    component: ProfilePage,
+    children: [],
+  },
+  {
+    path: ROUTES.ABOUT,
+    component: AboutPage,
+    children: [],
+  }
 ];
 
 export const otherRoutes: RouteDetails[] = [
