@@ -16,7 +16,7 @@ const HomePage = (): JSX.Element => {
   const navigate = useNavigate();
 
   const errorComponent = (msg: string): JSX.Element => (
-    <Container maxWidth="lg">
+    <Container sx={{ m: 0, p: 0, bgcolor: "red" }}>
       <Box
         sx={{
           display: "flex",
@@ -48,7 +48,8 @@ const HomePage = (): JSX.Element => {
   } else if (status === "pending" || isFetching) return <LoadingPage />;
 
   return (
-    <Container sx={{ m: 0, p: 0 }}>
+    <Container className="bg-accent-foreground min-w-screen">
+      <div>HEADER GOES HERE (For logout and shit)</div>
       <Box
         sx={{
           display: "flex",
@@ -58,6 +59,7 @@ const HomePage = (): JSX.Element => {
           minHeight: "100vh",
           textAlign: "center",
           padding: "2rem",
+          color: "white"
         }}
       >
         <Typography variant="h2" component="h1" gutterBottom>
@@ -66,7 +68,7 @@ const HomePage = (): JSX.Element => {
         <Typography variant="h5" component="h2" gutterBottom>
           A real-time collaborative platform for coding together
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body1" color="bisque">
           Start coding with your team in real-time. Create or join a session to
           begin collaborating.
         </Typography>

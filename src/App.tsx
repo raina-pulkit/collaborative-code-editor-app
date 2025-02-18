@@ -76,7 +76,7 @@ const App = (): JSX.Element => {
             <Route
               path="*"
               element={
-                <Suspense fallback={<LoadingPage size={16} />}>
+                <Suspense fallback={<LoadingPage size={20} />}>
                   <NotFound />
                 </Suspense>
               }
