@@ -1,25 +1,62 @@
-import { JSX, useEffect } from "react";
+import { fetchUserDetailsErrorMessageAtom } from "@/jotai/atoms";
+import { useGetAccessToken } from "@/utils/use-get-access-token";
+import { Box, Container, Typography } from "@mui/material";
+import { useAtom } from "jotai";
+import { JSX } from "react";
+import { useNavigate } from "react-router-dom";
+import { LoadingPage } from "./loading-page";
+import { ROUTES } from "@/constants/routes";
 
 const AuthRedirectPage = (): JSX.Element => {
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
+  const [, setFetchUserDetailsErrorMessage] = useAtom(
+    fetchUserDetailsErrorMessageAtom
+  );
+  const navigate = useNavigate();
 
-    if (code) {
-      // implement try-catch here
-      fetch("http://localhost:3000/auth/github/callback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('data: ', data);
-        });
-    }
-  }, []);
+  const { status, data, error, isFetching } = useGetAccessToken();
 
-  return <div>Processing GitHub login...</div>;
+  try {
+    if (error) throw new Error(error.message);
+    else if (status == "pending" || isFetching) {
+      /* empty */
+    } else if (status === "success" && !isFetching) {
+      setFetchUserDetailsErrorMessage("");
+      localStorage.setItem("accessToken", data);
+      navigate(ROUTES.HOME);
+    } else throw new Error("Unknown error occured!");
+  } catch (e: unknown) {
+    setFetchUserDetailsErrorMessage(
+      e instanceof Error ? e.message : "An error occurred"
+    );
+    console.log(
+      "error is: ",
+      e instanceof Error ? e.message : "An error occurred"
+    );
+    setTimeout(() => {
+      navigate(ROUTES.LOGIN);
+    }, 3000);
+  }
+
+  return (
+    <Container maxWidth="lg">
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+          textAlign: "center",
+          padding: "2rem",
+        }}
+      >
+        <Typography variant="h4" component="h1">
+          Redirecting to home page... please wait...
+        </Typography>
+        <LoadingPage size={100} />
+      </Box>
+    </Container>
+  );
 };
 
 export default AuthRedirectPage;

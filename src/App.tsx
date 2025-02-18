@@ -1,8 +1,11 @@
 import { JSX, Suspense, useEffect } from "react";
 import { allRoutes, authRoutes, RouteDetails } from "./routes";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import CircularProgress from "@mui/material/CircularProgress";
 import NotFound from "./pages/not-found";
+import { LoadingPage } from "./pages/loading-page";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./utils/tanstack-query-client";
+import { ROUTES } from "./constants/routes";
 
 const AuthenticatedContainer = ({
   children,
@@ -14,9 +17,17 @@ const AuthenticatedContainer = ({
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken && location.pathname !== "/login") navigate("/login");
-    else if (accessToken && location.pathname === "/login") navigate("/");
-  }, [navigate, location.pathname]);
+
+    if (
+      !accessToken &&
+      location.pathname !== ROUTES.LOGIN &&
+      location.pathname !== ROUTES.LOGIN_CALLBACK
+    )
+      navigate(ROUTES.LOGIN);
+    else if (accessToken && location.pathname === ROUTES.LOGIN)
+      navigate(ROUTES.HOME);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return <>{children}</>;
 };
@@ -46,31 +57,33 @@ const renderRoute = (route: RouteDetails): JSX.Element => (
 const App = (): JSX.Element => {
   return (
     <AuthenticatedContainer>
-      <Suspense fallback={<CircularProgress />}>
-        <Routes>
-          {authRoutes.map((route) => (
+      <QueryClientProvider client={queryClient}>
+        <Suspense fallback={<LoadingPage />}>
+          <Routes>
+            {authRoutes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={<route.component />}
+              />
+            ))}
             <Route
-              key={route.path}
-              path={route.path}
-              element={<route.component />}
+              index
+              key={"index"}
+              element={<AuthenticatedComponent route={allRoutes[0]} />}
             />
-          ))}
-          <Route
-            index
-            key={"index"}
-            element={<AuthenticatedComponent route={allRoutes[0]} />}
-          />
-          {allRoutes.map((route) => renderRoute(route))}
-          <Route
-            path="*"
-            element={
-              <Suspense fallback={<CircularProgress size={16} />}>
-                <NotFound />
-              </Suspense>
-            }
-          />
-        </Routes>
-      </Suspense>
+            {allRoutes.map((route) => renderRoute(route))}
+            <Route
+              path="*"
+              element={
+                <Suspense fallback={<LoadingPage size={16} />}>
+                  <NotFound />
+                </Suspense>
+              }
+            />
+          </Routes>
+        </Suspense>
+      </QueryClientProvider>
     </AuthenticatedContainer>
   );
 };

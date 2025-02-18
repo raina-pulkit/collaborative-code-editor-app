@@ -4,6 +4,7 @@ import { ROUTES } from "./constants/routes";
 const LoginPage = lazy(() => import("./pages/login-page"));
 const NotFound = lazy(() => import("./pages/not-found"));
 const HomePage = lazy(() => import("./pages/home-page"));
+const CallbackPage = lazy(() => import("./pages/login-callback-page"));
 
 export interface RouteDetails {
   path: string;
@@ -22,6 +23,11 @@ export const authRoutes: RouteDetails[] = [
     component: LoginPage,
     children: [],
   },
+  {
+    path: ROUTES.LOGIN_CALLBACK,
+    component: CallbackPage,
+    children: [],
+  }
 ];
 
 export const homeRoutes: RouteDetails[] = [
