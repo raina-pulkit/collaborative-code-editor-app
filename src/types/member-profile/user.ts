@@ -1,15 +1,16 @@
-export interface UserDetails {
-  id: number;
-  login: string;
+export interface User {
+  id: string;
+  githubUsername: string;
+  githubId: number;
+  email?: string;
+  githubLink: string;
   name: string;
-  email: string;
-  bio: string;
-  gender: "male" | "female" | "other" | "";
-  avatar_url: string;
-  html_url: string;
+  bio?: string;
+  avatarUrl?: string;
   followers: number;
   following: number;
-  created_at: string;
-  updated_at: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
   accessToken: string;
 }

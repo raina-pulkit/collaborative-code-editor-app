@@ -1,0 +1,13 @@
+# Build artifacts
+dist/
+build/
+node_modules/
+
+# Config files
+.eslintrc.js
+eslint.config.js
+*.config.js
+vite.config.ts
+
+# If you want to ignore UI components
+src/components/ui/**/*.tsx 

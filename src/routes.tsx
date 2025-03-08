@@ -1,12 +1,13 @@
-import { JSX, lazy, LazyExoticComponent } from "react";
-import { ROUTES } from "./constants/routes";
+import { JSX, lazy, LazyExoticComponent } from 'react';
+import { ROUTES } from './constants/routes';
 
-const LoginPage = lazy(() => import("./pages/login-page"));
-const NotFound = lazy(() => import("./pages/not-found"));
-const HomePage = lazy(() => import("./pages/home-page"));
-const CallbackPage = lazy(() => import("./pages/login-callback-page"));
-const AboutPage = lazy(() => import("./pages/about-page"));
-const ProfilePage = lazy(() => import("./pages/profile-page"));
+const LoginPage = lazy(() => import('./pages/login-page'));
+const NotFound = lazy(() => import('./pages/not-found'));
+const HomePage = lazy(() => import('./pages/home-page'));
+const CallbackPage = lazy(() => import('./pages/login-callback-page'));
+const AboutPage = lazy(() => import('./pages/about-page'));
+const ProfilePage = lazy(() => import('./pages/profile-page'));
+const ErrorPage = lazy(() => import('./pages/error-page'));
 
 export interface RouteDetails {
   path: string;
@@ -29,7 +30,7 @@ export const authRoutes: RouteDetails[] = [
     path: ROUTES.LOGIN_CALLBACK,
     component: CallbackPage,
     children: [],
-  }
+  },
 ];
 
 export const homeRoutes: RouteDetails[] = [
@@ -47,7 +48,12 @@ export const homeRoutes: RouteDetails[] = [
     path: ROUTES.ABOUT,
     component: AboutPage,
     children: [],
-  }
+  },
+  {
+    path: ROUTES.ERROR,
+    component: ErrorPage,
+    children: [],
+  },
 ];
 
 export const otherRoutes: RouteDetails[] = [

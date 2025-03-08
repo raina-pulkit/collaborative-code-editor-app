@@ -1,66 +1,42 @@
-import { JSX } from "react";
-import { Container, Typography, Box } from "@mui/material";
-import { fetchUserDetailsErrorMessageAtom } from "@/jotai/atoms";
-import { useNavigate } from "react-router-dom";
-import { ROUTES } from "@/constants/routes";
-import { useGetUserDetails } from "@/utils/use-get-user-details";
-import { LoadingPage } from "./loading-page";
-import { useAtom } from "jotai";
-import { Header } from "@/custom/header";
+import { ROUTES } from '@/constants/routes';
+import { useError } from '@/context/error-context';
+import { Header } from '@/custom/header';
+import { useGetUserDetails } from '@/utils/use-get-user-details';
+import { Box, Container, Typography } from '@mui/material';
+import { JSX } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { LoadingPage } from './loading-page';
 
 const HomePage = (): JSX.Element => {
   const { data: userDetails, status, isFetching, error } = useGetUserDetails();
 
-  const [fetchUserDetailsError, setFetchUserDetailsError] = useAtom(
-    fetchUserDetailsErrorMessageAtom
-  );
+  const { setErrorMessage } = useError();
+
   const navigate = useNavigate();
 
-  const errorComponent = (msg: string): JSX.Element => (
-    <Container sx={{ m: 0, p: 0, bgcolor: "red" }}>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          textAlign: "center",
-          padding: "2rem",
-          backgroundColor: "red",
-        }}
-      >
-        <Typography variant="h4" component="h2" gutterBottom>
-          ERROR OCCURED
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {msg}
-        </Typography>
-      </Box>
-    </Container>
-  );
-
-  if (error || userDetails?.accessToken === "") {
-    setFetchUserDetailsError(error?.message || "Error fetching user details");
+  if (error || localStorage.getItem('accessToken') === '') {
+    setErrorMessage(error?.message || 'Error fetching user details');
     setTimeout(() => {
+      localStorage.removeItem('accessToken');
       navigate(ROUTES.LOGIN);
     }, 3000);
-    return errorComponent(fetchUserDetailsError);
-  } else if (status === "pending" || isFetching) return <LoadingPage />;
+    navigate(ROUTES.ERROR);
+    return <></>;
+  } else if (status === 'pending' || isFetching) return <LoadingPage />;
 
   return (
     <Container className="bg-accent-foreground min-w-screen">
-      <Header imgSource={userDetails.avatar_url} />
+      <Header imgSource={userDetails.avatarUrl} />
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          textAlign: "center",
-          padding: "2rem",
-          color: "white",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          textAlign: 'center',
+          padding: '2rem',
+          color: 'white',
         }}
       >
         <Typography variant="h2" component="h1" gutterBottom>

@@ -1,18 +1,18 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuShortcut,
-} from "@/components/ui/dropdown-menu";
-import { ROUTES } from "@/constants/routes";
-import { Box, Typography } from "@mui/material";
-import { AvatarImage } from "@radix-ui/react-avatar";
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { LogOut, User } from "lucide-react";
-import { JSX } from "react";
-import { useNavigate } from "react-router-dom";
+} from '@/components/ui/dropdown-menu';
+import { ROUTES } from '@/constants/routes';
+import { Box, Typography } from '@mui/material';
+import { AvatarImage } from '@radix-ui/react-avatar';
+import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
+import { LogOut, User } from 'lucide-react';
+import { JSX } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
   const navigate = useNavigate();
@@ -20,13 +20,13 @@ export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
   return (
     <Box
       sx={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "1rem",
-        backgroundColor: "primary.main",
-        color: "white",
-        borderRadius: "0 0 10px 10px",
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '1rem',
+        backgroundColor: 'primary.main',
+        color: 'white',
+        borderRadius: '0 0 10px 10px',
       }}
     >
       <Typography variant="h6" component="div">
@@ -49,7 +49,7 @@ export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  localStorage.removeItem("accessToken");
+                  localStorage.removeItem('accessToken');
                   navigate(ROUTES.LOGIN);
                 }}
               >
