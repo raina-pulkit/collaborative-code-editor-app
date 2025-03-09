@@ -23,10 +23,12 @@ export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '1rem',
         backgroundColor: 'primary.main',
         color: 'white',
         borderRadius: '0 0 10px 10px',
+        padding: '1rem',
+        marginLeft: '1rem',
+        marginRight: '1rem',
       }}
     >
       <Typography variant="h6" component="div">

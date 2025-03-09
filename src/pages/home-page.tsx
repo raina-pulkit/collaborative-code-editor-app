@@ -1,39 +1,44 @@
 import { ROUTES } from '@/constants/routes';
 import { useError } from '@/context/error-context';
+import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';
-import { useGetUserDetails } from '@/utils/use-get-user-details';
 import { Box, Container, Typography } from '@mui/material';
 import { JSX } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoadingPage } from './loading-page';
 
 const HomePage = (): JSX.Element => {
-  const { data: userDetails, status, isFetching, error } = useGetUserDetails();
-
-  const { setErrorMessage } = useError();
-
+  const { userDetails, isLoading, error } = useUser();
+  const { errorMessage, setErrorMessage } = useError();
   const navigate = useNavigate();
 
-  if (error || localStorage.getItem('accessToken') === '') {
-    setErrorMessage(error?.message || 'Error fetching user details');
+  console.log('pulkit user details: ', userDetails);
+  console.log('pulkit error: ', error);
+  console.log('pulkit error message: ', errorMessage);
+  console.log('pulkit is loading: ', isLoading);
+
+  if (error || errorMessage) {
+    setErrorMessage(error?.message || errorMessage || 'Error fetching user details');
     setTimeout(() => {
       localStorage.removeItem('accessToken');
       navigate(ROUTES.LOGIN);
     }, 3000);
     navigate(ROUTES.ERROR);
     return <></>;
-  } else if (status === 'pending' || isFetching) return <LoadingPage />;
+  } else if (isLoading) return <LoadingPage />;
 
   return (
-    <Container className="bg-accent-foreground min-w-screen">
-      <Header imgSource={userDetails.avatarUrl} />
+    <Container className="bg-accent-foreground min-w-full min-h-screen !p-0 relative">
+      <Box sx={{ position: 'sticky', top: 0 }}>
+        <Header imgSource={userDetails?.avatarUrl} />
+      </Box>
       <Box
         sx={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          minHeight: '100vh',
+          minHeight: 'calc(100vh - 98px)',
           textAlign: 'center',
           padding: '2rem',
           color: 'white',

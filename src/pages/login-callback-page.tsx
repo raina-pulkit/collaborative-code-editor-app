@@ -21,7 +21,6 @@ const AuthRedirectPage = (): JSX.Element => {
   try {
     if (error) {
       setErrorMessage(error.message);
-      navigate(ROUTES.ERROR);
     } else if (status == 'pending' || isFetching) {
       /* empty */
     } else if (status === 'success' && !isFetching) {

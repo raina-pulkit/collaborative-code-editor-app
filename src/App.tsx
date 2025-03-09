@@ -2,10 +2,12 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { JSX, Suspense, useEffect } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from './constants/routes';
+import { UserProvider } from './context/user-context';
 import { LoadingPage } from './pages/loading-page';
 import NotFound from './pages/not-found';
 import { allRoutes, authRoutes, RouteDetails } from './routes';
 import { queryClient } from './utils/tanstack-query-client';
+import { useGetUserDetails } from './utils/use-get-user-details';
 
 const AuthenticatedContainer = ({
   children,
@@ -14,21 +16,19 @@ const AuthenticatedContainer = ({
 }): JSX.Element => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { data: userDetails, error, isFetching } = useGetUserDetails();
 
   useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken');
-
-    if (
-      !accessToken &&
-      location.pathname !== ROUTES.LOGIN &&
-      location.pathname !== ROUTES.LOGIN_CALLBACK
-    )
-      navigate(ROUTES.LOGIN);
-    else if (accessToken && location.pathname === ROUTES.LOGIN)
+    if (error?.name === 'UnauthorizedError') navigate(ROUTES.LOGIN);
+    else if (!error && !isFetching && location.pathname === ROUTES.LOGIN)
       navigate(ROUTES.HOME);
-  }, [location.pathname]);
+  }, [location.pathname, navigate]);
 
-  return <>{children}</>;
+  return (
+    <UserProvider value={{ userDetails, isLoading: isFetching, error }}>
+      {children}
+    </UserProvider>
+  );
 };
 
 const AuthenticatedComponent = ({
@@ -55,8 +55,8 @@ const renderRoute = (route: RouteDetails): JSX.Element => (
 
 const App = (): JSX.Element => {
   return (
-    <AuthenticatedContainer>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <AuthenticatedContainer>
         <Suspense fallback={<LoadingPage />}>
           <Routes>
             {authRoutes.map(route => (
@@ -82,8 +82,8 @@ const App = (): JSX.Element => {
             />
           </Routes>
         </Suspense>
-      </QueryClientProvider>
-    </AuthenticatedContainer>
+      </AuthenticatedContainer>
+    </QueryClientProvider>
   );
 };
 

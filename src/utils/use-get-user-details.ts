@@ -14,6 +14,8 @@ const fetchUserDetails = async () => {
     },
   );
 
+  console.log('pulkti response: ', response);
+
   if (!response.ok) {
     if (response.status === 500) localStorage.removeItem('accessToken');
     throw new Error(`Error: ${response.statusText}`);
