@@ -48,3 +48,9 @@ export default tseslint.config({
   },
 })
 ```
+
+
+# Setup github client
+create a new .env
+
+go to github and create new oauth app (copy the client id and secret to the app and service)
