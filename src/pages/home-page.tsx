@@ -3,29 +3,22 @@ import { useError } from '@/context/error-context';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';
 import { Box, Container, Typography } from '@mui/material';
-import { JSX } from 'react';
+import { JSX, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoadingPage } from './loading-page';
 
 const HomePage = (): JSX.Element => {
   const { userDetails, isLoading, error } = useUser();
-  const { errorMessage, setErrorMessage } = useError();
   const navigate = useNavigate();
 
-  console.log('pulkit user details: ', userDetails);
-  console.log('pulkit error: ', error);
-  console.log('pulkit error message: ', errorMessage);
-  console.log('pulkit is loading: ', isLoading);
-
-  if (error || errorMessage) {
-    setErrorMessage(error?.message || errorMessage || 'Error fetching user details');
-    setTimeout(() => {
+  useEffect(() => {
+    if (error) {
       localStorage.removeItem('accessToken');
       navigate(ROUTES.LOGIN);
-    }, 3000);
-    navigate(ROUTES.ERROR);
-    return <></>;
-  } else if (isLoading) return <LoadingPage />;
+    }
+  }, [error, navigate]);
+
+  if (isLoading) return <LoadingPage message="Fetching user details" />;
 
   return (
     <Container className="bg-accent-foreground min-w-full min-h-screen !p-0 relative">

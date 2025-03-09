@@ -1,3 +1,4 @@
+import { UNAUTHORIZED_ERROR } from '@/constants/error';
 import { User } from '@/types/member-profile/user';
 import { useQuery } from '@tanstack/react-query';
 
@@ -14,10 +15,9 @@ const fetchUserDetails = async () => {
     },
   );
 
-  console.log('pulkti response: ', response);
-
   if (!response.ok) {
     if (response.status === 500) localStorage.removeItem('accessToken');
+    if (response.status === 401) throw new Error(UNAUTHORIZED_ERROR);
     throw new Error(`Error: ${response.statusText}`);
   }
 

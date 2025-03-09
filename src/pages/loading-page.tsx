@@ -1,7 +1,13 @@
-import { Box, CircularProgress, Container } from '@mui/material';
+import { Box, CircularProgress, Container, Typography } from '@mui/material';
 import { JSX } from 'react';
 
-export const LoadingPage = ({ size }: { size?: number }): JSX.Element => (
+export const LoadingPage = ({
+  size,
+  message,
+}: {
+  size?: number;
+  message?: string;
+}): JSX.Element => (
   <Container>
     <Box
       sx={{
@@ -14,6 +20,9 @@ export const LoadingPage = ({ size }: { size?: number }): JSX.Element => (
         padding: '2rem',
       }}
     >
+      <Typography variant="h6" component="div">
+        {message || 'Loading...'}
+      </Typography>
       <CircularProgress size={size || 20} />
     </Box>
   </Container>

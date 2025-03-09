@@ -8,6 +8,8 @@ import NotFound from './pages/not-found';
 import { allRoutes, authRoutes, RouteDetails } from './routes';
 import { queryClient } from './utils/tanstack-query-client';
 import { useGetUserDetails } from './utils/use-get-user-details';
+import { ErrorProvider, useError } from './context/error-context';
+import { UNAUTHORIZED_ERROR } from './constants/error';
 
 const AuthenticatedContainer = ({
   children,
@@ -16,13 +18,20 @@ const AuthenticatedContainer = ({
 }): JSX.Element => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setErrorMessage } = useError();
   const { data: userDetails, error, isFetching } = useGetUserDetails();
 
   useEffect(() => {
-    if (error?.name === 'UnauthorizedError') navigate(ROUTES.LOGIN);
-    else if (!error && !isFetching && location.pathname === ROUTES.LOGIN)
+    if (error?.message === UNAUTHORIZED_ERROR) {
+      localStorage.removeItem('accessToken');
+      setErrorMessage('');
+      navigate(ROUTES.LOGIN);
+    } else if (!error && !isFetching && location.pathname === ROUTES.LOGIN) {
       navigate(ROUTES.HOME);
-  }, [location.pathname, navigate]);
+    }
+  }, [error, isFetching, location.pathname, navigate, setErrorMessage]);
+
+  if (isFetching) return <LoadingPage message="Fetching user details" />;
 
   return (
     <UserProvider value={{ userDetails, isLoading: isFetching, error }}>
@@ -56,8 +65,8 @@ const renderRoute = (route: RouteDetails): JSX.Element => (
 const App = (): JSX.Element => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthenticatedContainer>
-        <Suspense fallback={<LoadingPage />}>
+      <ErrorProvider>
+        <Suspense fallback={<LoadingPage message="Loading..." />}>
           <Routes>
             {authRoutes.map(route => (
               <Route
@@ -66,6 +75,7 @@ const App = (): JSX.Element => {
                 element={<route.component />}
               />
             ))}
+
             <Route
               index
               key={'index'}
@@ -75,14 +85,18 @@ const App = (): JSX.Element => {
             <Route
               path="*"
               element={
-                <Suspense fallback={<LoadingPage size={20} />}>
+                <Suspense
+                  fallback={
+                    <LoadingPage size={20} message="Route not found!" />
+                  }
+                >
                   <NotFound />
                 </Suspense>
               }
             />
           </Routes>
         </Suspense>
-      </AuthenticatedContainer>
+      </ErrorProvider>
     </QueryClientProvider>
   );
 };

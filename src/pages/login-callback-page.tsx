@@ -1,45 +1,38 @@
 import { ROUTES } from '@/constants/routes';
 import { useError } from '@/context/error-context';
-import { fetchUserDetailsErrorMessageAtom } from '@/jotai/atoms';
 import { useGetAccessToken } from '@/utils/use-get-access-token';
-import { Box, Container, Typography } from '@mui/material';
-import { useAtom } from 'jotai';
-import { JSX } from 'react';
+import { Box, Container } from '@mui/material';
+import { JSX, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoadingPage } from './loading-page';
 
 const AuthRedirectPage = (): JSX.Element => {
-  const [, setFetchUserDetailsErrorMessage] = useAtom(
-    fetchUserDetailsErrorMessageAtom,
-  );
   const navigate = useNavigate();
-
   const { status, data, error, isFetching } = useGetAccessToken();
-
   const { setErrorMessage } = useError();
 
-  try {
-    if (error) {
-      setErrorMessage(error.message);
-    } else if (status == 'pending' || isFetching) {
-      /* empty */
-    } else if (status === 'success' && !isFetching) {
-      setFetchUserDetailsErrorMessage('');
-      localStorage.setItem('accessToken', data);
-      navigate(ROUTES.HOME);
-    } else throw new Error('Unknown error occured!');
-  } catch (e: unknown) {
-    setFetchUserDetailsErrorMessage(
-      e instanceof Error ? e.message : 'An error occurred',
-    );
-    console.log(
-      'error is: ',
-      e instanceof Error ? e.message : 'An error occurred',
-    );
-    setTimeout(() => {
-      navigate(ROUTES.LOGIN);
-    }, 3000);
-  }
+  useEffect(() => {
+    const handleAuth = () => {
+      try {
+        if (error) {
+          setErrorMessage(error.message);
+          navigate(ROUTES.LOGIN);
+        } else if (status === 'success' && !isFetching && data) {
+          setErrorMessage('');
+          localStorage.setItem('accessToken', data);
+          navigate(ROUTES.HOME);
+        }
+      } catch (e) {
+        const errorMsg = e instanceof Error ? e.message : 'An error occurred';
+        setErrorMessage(errorMsg);
+        setTimeout(() => {
+          navigate(ROUTES.LOGIN);
+        }, 3000);
+      }
+    };
+
+    handleAuth();
+  }, [status, data, error, isFetching, navigate, setErrorMessage]);
 
   return (
     <Container maxWidth="lg">
@@ -54,10 +47,10 @@ const AuthRedirectPage = (): JSX.Element => {
           padding: '2rem',
         }}
       >
-        <Typography variant="h4" component="h1">
-          Redirecting to home page... please wait...
-        </Typography>
-        <LoadingPage size={100} />
+        <LoadingPage 
+          size={100} 
+          message={status === 'pending' || isFetching ? "Authorizing your access..." : "Redirecting..."} 
+        />
       </Box>
     </Container>
   );

@@ -1,9 +1,6 @@
+import { User } from '@/types/member-profile/user';
 import { createContext, useContext } from 'react';
 
-type User = {
-  avatarUrl?: string;
-  // Add other user properties as needed
-};
 
 interface UserContextType {
   userDetails: User | undefined;
