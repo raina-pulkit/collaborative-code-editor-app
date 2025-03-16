@@ -1,5 +1,4 @@
 import { ROUTES } from '@/constants/routes';
-import { useError } from '@/context/error-context';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';
 import { Box, Container, Typography } from '@mui/material';
