@@ -27,14 +27,20 @@ const localStorageEffect =
     });
   };
 
-export const language = atom({
+export const languageAtom = atom({
   key: 'language',
-  default: 'javascript',
+  defaultValue: 'javascript',
+  defaultLabel: 'JavaScript',
+  currValue: 'javascript',
+  currLabel: 'JavaScript',
   effects_UNSTABLE: [localStorageEffect('language')],
 });
 
-export const theme = atom({
+export const themeAtom = atom({
   key: 'theme',
-  default: 'monokai',
+  defaultValue: 'monokai',
+  defaultLabel: 'monokai',
+  currValue: 'monokai',
+  currLabel: 'monokai',
   effects_UNSTABLE: [localStorageEffect('theme')],
 });

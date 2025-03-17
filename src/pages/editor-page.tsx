@@ -1,17 +1,35 @@
+import EditorSidebar from '@/components/editor-sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ACTIONS } from '@/constants/actions';
 import { useUser } from '@/context/user-context';
 import { disconnectSocket, initSocket } from '@/utils/socket';
-import { useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 import { toast } from 'sonner';
+import { validate } from 'uuid';
 
 const EditorPage = () => {
   const socketRef = useRef<Socket | null>(null);
-  const { id } = useParams();
+  const { id = '' } = useParams();
   const { userDetails } = useUser();
+  const [connectedUsers, setConnectedUsers] = useState<
+    { userName: string; avatarUrl: string; userId: string }[]
+  >([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!validate) {
+      toast.error('Invalid room ID', {
+        description: 'Please enter a valid room ID',
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+        },
+      });
+      navigate('/');
+      return;
+    }
     let mounted = true;
 
     const init = async () => {
@@ -30,7 +48,6 @@ const EditorPage = () => {
 
           socket.on('connect', () => {
             if (!mounted) return;
-            console.log('connected');
             toast.success('Connected to the socket server', {
               style: {
                 backgroundColor: 'green',
@@ -41,11 +58,12 @@ const EditorPage = () => {
             // Only emit join after successful connection
             socket.emit(ACTIONS.JOIN, {
               id,
-              username:
+              userName:
                 userDetails?.name ||
                 userDetails?.githubUsername ||
                 'Unknown User',
               userId: userDetails?.id,
+              avatarUrl: userDetails?.avatarUrl,
             });
           });
 
@@ -61,10 +79,10 @@ const EditorPage = () => {
           });
 
           // Check if someone joined the room
-          socket.on(ACTIONS.JOINED, ({ username, userId }) => {
+          socket.on(ACTIONS.JOINED, ({ clients, userName, userId }) => {
             if (!mounted) return;
             if (userDetails?.id !== userId) {
-              toast.success(`${username} joined the room`, {
+              toast.success(`${userName} joined the room`, {
                 position: 'top-center',
                 style: {
                   backgroundColor: 'green',
@@ -72,13 +90,15 @@ const EditorPage = () => {
                 },
               });
             }
+
+            setConnectedUsers(clients);
           });
 
           // Check if someone left the room
-          socket.on(ACTIONS.DISCONNECTED, ({ username, userId }) => {
+          socket.on(ACTIONS.DISCONNECTED, ({ userName, userId }) => {
             if (!mounted) return;
             if (userDetails?.id !== userId) {
-              toast.success(`${username} left the room`, {
+              toast.success(`${userName} left the room`, {
                 position: 'top-center',
                 style: {
                   backgroundColor: 'orangered',
@@ -86,6 +106,10 @@ const EditorPage = () => {
                 },
               });
             }
+
+            setConnectedUsers(prev =>
+              prev.filter(user => user.userId !== userId),
+            );
           });
         }
       } catch (err) {
@@ -104,27 +128,43 @@ const EditorPage = () => {
         disconnectSocket();
       }
     };
-  }, [id, userDetails?.githubUsername, userDetails?.id, userDetails?.name]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    id,
+    userDetails?.avatarUrl,
+    userDetails?.githubUsername,
+    userDetails?.id,
+    userDetails?.name,
+  ]);
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <button
-        onClick={e => {
-          e.preventDefault();
-          socketRef.current?.emit(ACTIONS.LEAVE, {
-            id,
-            username:
-              userDetails?.name ||
-              userDetails?.githubUsername ||
-              'Unknown User',
-            userId: userDetails?.id,
-          });
-        }}
-        className="bg-red-500 text-white px-4 py-2 rounded-md"
-      >
-        Leave
-      </button>
-    </div>
+    <SidebarProvider>
+      <EditorSidebar
+        connectedUsers={connectedUsers}
+        roomId={id || ''}
+        socketRef={socketRef}
+      />
+      <SidebarTrigger className="cursor-pointer hover:scale-110 transition-all duration-300" />
+
+      <div className="flex justify-center items-center h-screen w-screen">
+        <button
+          onClick={e => {
+            e.preventDefault();
+            socketRef.current?.emit(ACTIONS.LEAVE, {
+              id,
+              userName:
+                userDetails?.name ||
+                userDetails?.githubUsername ||
+                'Unknown User',
+              userId: userDetails?.id,
+            });
+          }}
+          className="bg-red-500 text-white px-4 py-2 rounded-md"
+        >
+          Leave
+        </button>
+      </div>
+    </SidebarProvider>
   );
 };
 
