@@ -29,6 +29,9 @@ import { ACTIONS } from '@/constants/actions';
 import { useUser } from '@/context/user-context';
 import { ROUTES } from '@/constants/routes';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { initSocket } from '@/utils/socket';
+import { TYPING_DEBOUNCE } from '@/constants/utils';
 
 const LogoComponent = () => (
   <SidebarGroup>
@@ -198,6 +201,56 @@ const EditorSidebar = ({
 }) => {
   const { userDetails } = useUser();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const init = async () => {
+      if (!socketRef?.current) {
+        socketRef.current = await initSocket();
+        socketRef.current.connect();
+
+        socketRef.current.on('connect', () => {
+          toast.success('Connected to the socket server', {
+            style: {
+              backgroundColor: 'green',
+              color: 'white',
+            },
+          });
+
+          // Only emit join after successful connection
+          socketRef.current?.emit(ACTIONS.JOIN, {
+            id: roomId,
+            userName:
+              userDetails?.name ||
+              userDetails?.githubUsername ||
+              'Unknown User',
+            userId: userDetails?.id,
+            avatarUrl: userDetails?.avatarUrl,
+          });
+        });
+      }
+
+      socketRef.current.on(
+        ACTIONS.SOMEONE_TYPING,
+        ({ userName, userId }: { userName: string; userId: string }) => {
+          if (userId !== userDetails?.id) {
+            toast.info(`${userName} is typing...`, {
+              style: {
+                backgroundColor: 'blue',
+                color: 'white',
+              },
+              duration: TYPING_DEBOUNCE,
+            });
+          }
+        },
+      );
+    };
+    init();
+
+    return () => {
+      // Cleanup
+      socketRef.current?.removeListener(ACTIONS.SOMEONE_TYPING);
+    };
+  });
 
   return (
     <Sidebar>

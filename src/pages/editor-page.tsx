@@ -2,12 +2,15 @@ import EditorSidebar from '@/components/editor-sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ACTIONS } from '@/constants/actions';
 import { useUser } from '@/context/user-context';
+import { Editor } from '@monaco-editor/react';
 import { disconnectSocket, initSocket } from '@/utils/socket';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { validate } from 'uuid';
+import { handleEmitTyping } from '@/utils/emit-typing';
+import { TYPING_DEBOUNCE } from '@/constants/utils';
 
 const EditorPage = () => {
   const socketRef = useRef<Socket | null>(null);
@@ -17,6 +20,8 @@ const EditorPage = () => {
     { userName: string; avatarUrl: string; userId: string }[]
   >([]);
   const navigate = useNavigate();
+  let lastTyping: Date | null = null;
+  const firstTime = useRef(true);
 
   useEffect(() => {
     if (!validate) {
@@ -47,7 +52,8 @@ const EditorPage = () => {
           socket.connect();
 
           socket.on('connect', () => {
-            if (!mounted) return;
+            console.log('first time: =', firstTime.current);
+            if (!mounted || !firstTime.current) return;
             toast.success('Connected to the socket server', {
               style: {
                 backgroundColor: 'green',
@@ -65,6 +71,8 @@ const EditorPage = () => {
               userId: userDetails?.id,
               avatarUrl: userDetails?.avatarUrl,
             });
+            console.log('first time made false');
+            firstTime.current = false;
           });
 
           socket.on('connect_error', err => {
@@ -145,25 +153,22 @@ const EditorPage = () => {
         socketRef={socketRef}
       />
       <SidebarTrigger className="cursor-pointer hover:scale-110 transition-all duration-300" />
-
-      <div className="flex justify-center items-center h-screen w-screen">
-        <button
-          onClick={e => {
-            e.preventDefault();
-            socketRef.current?.emit(ACTIONS.LEAVE, {
-              id,
-              userName:
-                userDetails?.name ||
-                userDetails?.githubUsername ||
-                'Unknown User',
-              userId: userDetails?.id,
-            });
-          }}
-          className="bg-red-500 text-white px-4 py-2 rounded-md"
-        >
-          Leave
-        </button>
-      </div>
+      <Editor
+        height="100vh"
+        defaultLanguage="javascript"
+        defaultValue="// some comment"
+        onChange={e => {
+          console.log('new text: ', e);
+          if (
+            !lastTyping ||
+            new Date().getTime() - lastTyping.getTime() > TYPING_DEBOUNCE
+          ) {
+            handleEmitTyping(socketRef, id, userDetails?.id || '');
+            lastTyping = new Date();
+          }
+        }}
+      />
+      ;
     </SidebarProvider>
   );
 };
