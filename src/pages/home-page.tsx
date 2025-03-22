@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { v7 as uuid, validate } from 'uuid';
 import { toast } from 'sonner';
+import { CREATE_ROOM } from '@/constants/button-texts';
 
 const HomePage = (): JSX.Element => {
   const { userDetails, isLoading, error } = useUser();
@@ -79,7 +80,7 @@ const HomePage = (): JSX.Element => {
             navigate(`${ROUTES.EDITOR}/${roomId}`);
           }}
         >
-          Create Random Room
+          {CREATE_ROOM}
         </Button>
       </Box>
     </Container>
