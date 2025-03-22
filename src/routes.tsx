@@ -8,6 +8,7 @@ const CallbackPage = lazy(() => import('./pages/login-callback-page'));
 const AboutPage = lazy(() => import('./pages/about-page'));
 const ProfilePage = lazy(() => import('./pages/profile-page'));
 const ErrorPage = lazy(() => import('./pages/error-page'));
+const Rand = lazy(() => import('./pages/profile-page'));
 
 export interface RouteDetails {
   path: string;
@@ -52,6 +53,11 @@ export const homeRoutes: RouteDetails[] = [
   {
     path: ROUTES.ERROR,
     component: ErrorPage,
+    children: [],
+  },
+  {
+    path: ROUTES.v1,
+    component: Rand,
     children: [],
   },
 ];
