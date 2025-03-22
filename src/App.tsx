@@ -19,9 +19,13 @@ const AuthenticatedContainer = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { setErrorMessage } = useError();
+  const accessToken = localStorage.getItem('accessToken');
   const { data: userDetails, error, isFetching } = useGetUserDetails();
 
   useEffect(() => {
+    if (!accessToken) {
+      navigate(ROUTES.LOGIN);
+    }
     if (error?.message === UNAUTHORIZED_ERROR) {
       localStorage.removeItem('accessToken');
       setErrorMessage('');
@@ -29,7 +33,14 @@ const AuthenticatedContainer = ({
     } else if (!error && !isFetching && location.pathname === ROUTES.LOGIN) {
       navigate(ROUTES.HOME);
     }
-  }, [error, isFetching, location.pathname, navigate, setErrorMessage]);
+  }, [
+    accessToken,
+    error,
+    isFetching,
+    location.pathname,
+    navigate,
+    setErrorMessage,
+  ]);
 
   if (isFetching) return <LoadingPage message="Fetching user details" />;
 
