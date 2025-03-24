@@ -1,7 +1,6 @@
 import { User } from '@/types/member-profile/user';
 import { createContext, useContext } from 'react';
 
-
 interface UserContextType {
   userDetails: User | undefined;
   isLoading: boolean;
@@ -18,4 +17,4 @@ export const useUser = () => {
   return context;
 };
 
-export const UserProvider = UserContext.Provider; 
+export const UserProvider = UserContext.Provider;

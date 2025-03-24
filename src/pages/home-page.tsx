@@ -1,15 +1,20 @@
 import { ROUTES } from '@/constants/routes';
-import { useError } from '@/context/error-context';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';
 import { Box, Container, Typography } from '@mui/material';
-import { JSX, useEffect } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoadingPage } from './loading-page';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { v7 as uuid, validate } from 'uuid';
+import { toast } from 'sonner';
+import { CREATE_ROOM } from '@/constants/button-texts';
 
 const HomePage = (): JSX.Element => {
   const { userDetails, isLoading, error } = useUser();
   const navigate = useNavigate();
+  const [roomId, setRoomId] = useState<string>('');
 
   useEffect(() => {
     if (error) {
@@ -47,6 +52,36 @@ const HomePage = (): JSX.Element => {
           Start coding with your team in real-time. Create or join a session to
           begin collaborating.
         </Typography>
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            if (validate(roomId)) navigate(`${ROUTES.EDITOR}/${roomId}`);
+            else
+              toast.error('Invalid room id', {
+                style: {
+                  backgroundColor: 'red',
+                  color: 'white',
+                },
+              });
+          }}
+          className="flex gap-2 mt-10"
+        >
+          <Input
+            placeholder="Enter room id"
+            value={roomId}
+            onChange={e => setRoomId(e.target.value)}
+          />
+          <Button type="submit">Join Room</Button>
+        </form>
+        <Button
+          variant="outline"
+          onClick={() => {
+            const roomId = uuid();
+            navigate(`${ROUTES.EDITOR}/${roomId}`);
+          }}
+        >
+          {CREATE_ROOM}
+        </Button>
       </Box>
     </Container>
   );
