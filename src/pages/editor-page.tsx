@@ -3,7 +3,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ACTIONS } from '@/constants/actions';
 import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
-import { languageAtom } from '@/jotai/atoms';
+import { languageAtom, themeAtom } from '@/jotai/atoms';
 import { handleEmitTyping } from '@/utils/emit-typing';
 import { disconnectSocket, initSocket } from '@/utils/socket';
 import { Editor } from '@monaco-editor/react';
@@ -27,6 +27,7 @@ const EditorPage = () => {
   let lastTyping: Date | null = null;
   const firstTime = useRef(true);
   const language = useAtomValue(languageAtom);
+  const theme = useAtomValue(themeAtom);
 
   useEffect(() => {
     if (!validate) {
@@ -165,16 +166,26 @@ const EditorPage = () => {
   ]);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={{
+        backgroundColor: theme.currValue === 'vs-dark' ? '#1e1e1e' : 'white',
+      }}
+    >
       <EditorSidebar
         connectedUsers={connectedUsers}
         roomId={id || ''}
         socketRef={socketRef}
       />
-      <SidebarTrigger className="cursor-pointer hover:scale-110 transition-all duration-300" />
+      <SidebarTrigger
+        className="cursor-pointer hover:scale-110 transition-all duration-300"
+        style={{
+          color: theme.currValue === 'vs-dark' ? 'white' : 'black',
+        }}
+      />
       <Editor
         height="100vh"
         language={language.currValue}
+        theme={theme.currValue}
         defaultValue="// some comment"
         value={editorContent}
         onChange={e => {
