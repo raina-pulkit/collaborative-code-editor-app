@@ -129,8 +129,8 @@ const LanguageSelector = () => {
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue
-                defaultValue={lang.defaultValue}
-                placeholder={lang.defaultLabel}
+                defaultValue={lang.currValue || lang.defaultValue}
+                placeholder={lang.currLabel || lang.defaultLabel}
               />
             </SelectTrigger>
             <SelectContent>

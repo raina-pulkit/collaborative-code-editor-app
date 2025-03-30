@@ -3,9 +3,11 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ACTIONS } from '@/constants/actions';
 import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
+import { languageAtom } from '@/jotai/atoms';
 import { handleEmitTyping } from '@/utils/emit-typing';
 import { disconnectSocket, initSocket } from '@/utils/socket';
 import { Editor } from '@monaco-editor/react';
+import { useAtomValue } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
@@ -24,6 +26,7 @@ const EditorPage = () => {
   const navigate = useNavigate();
   let lastTyping: Date | null = null;
   const firstTime = useRef(true);
+  const language = useAtomValue(languageAtom);
 
   useEffect(() => {
     if (!validate) {
@@ -171,7 +174,7 @@ const EditorPage = () => {
       <SidebarTrigger className="cursor-pointer hover:scale-110 transition-all duration-300" />
       <Editor
         height="100vh"
-        defaultLanguage="javascript"
+        language={language.currValue}
         defaultValue="// some comment"
         value={editorContent}
         onChange={e => {
@@ -191,6 +194,9 @@ const EditorPage = () => {
             codeRef.current = e;
             setEditorContent(e);
           }
+        }}
+        options={{
+          wordWrap: 'on',
         }}
       />
       ;
