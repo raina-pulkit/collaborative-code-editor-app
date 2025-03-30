@@ -1,6 +1,7 @@
 import EditorSidebar from '@/components/editor-sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ACTIONS } from '@/constants/actions';
+import { ROUTES } from '@/constants/routes';
 import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
@@ -30,7 +31,7 @@ const EditorPage = () => {
   const theme = useAtomValue(themeAtom);
 
   useEffect(() => {
-    if (!validate) {
+    if (!validate(id)) {
       toast.error('Invalid room ID', {
         description: 'Please enter a valid room ID',
         style: {
@@ -38,9 +39,10 @@ const EditorPage = () => {
           color: 'white',
         },
       });
-      navigate('/');
+      navigate(ROUTES.HOME);
       return;
     }
+
     let mounted = true;
 
     const init = async () => {

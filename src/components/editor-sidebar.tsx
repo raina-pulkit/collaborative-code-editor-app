@@ -4,7 +4,6 @@ import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/constants/sidebar-options';
 import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
-import { initSocket } from '@/utils/socket';
 import { Box } from '@mui/material';
 import { useAtom } from 'jotai';
 import { useEffect } from 'react';
@@ -204,32 +203,7 @@ const EditorSidebar = ({
 
   useEffect(() => {
     const init = async () => {
-      if (!socketRef?.current) {
-        socketRef.current = await initSocket();
-        socketRef.current.connect();
-
-        socketRef.current.on('connect', () => {
-          toast.success('Connected to the socket server', {
-            style: {
-              backgroundColor: 'green',
-              color: 'white',
-            },
-          });
-
-          // Only emit join after successful connection
-          socketRef.current?.emit(ACTIONS.JOIN, {
-            id: roomId,
-            userName:
-              userDetails?.name ||
-              userDetails?.githubUsername ||
-              'Unknown User',
-            userId: userDetails?.id,
-            avatarUrl: userDetails?.avatarUrl,
-          });
-        });
-      }
-
-      socketRef.current.on(
+      socketRef.current?.on(
         ACTIONS.SOMEONE_TYPING,
         ({ userName, userId }: { userName: string; userId: string }) => {
           if (userId !== userDetails?.id) {
