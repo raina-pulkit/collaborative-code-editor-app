@@ -1,3 +1,27 @@
+import { ACTIONS } from '@/constants/actions';
+import { ROUTES } from '@/constants/routes';
+import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/constants/sidebar-options';
+import { TYPING_DEBOUNCE } from '@/constants/utils';
+import { useUser } from '@/context/user-context';
+import { languageAtom, themeAtom } from '@/jotai/atoms';
+import { Room } from '@/types/room';
+import { initSocket } from '@/utils/socket';
+import { Box } from '@mui/material';
+import { useAtom } from 'jotai';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Socket } from 'socket.io-client';
+import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Button } from './ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 import {
   Sidebar,
   SidebarContent,
@@ -9,29 +33,6 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from './ui/sidebar';
-import { Box } from '@mui/material';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { useAtom } from 'jotai';
-import { languageAtom, themeAtom } from '@/jotai/atoms';
-import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/constants/sidebar-options';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { Button } from './ui/button';
-import { toast } from 'sonner';
-import { Socket } from 'socket.io-client';
-import { ACTIONS } from '@/constants/actions';
-import { useUser } from '@/context/user-context';
-import { ROUTES } from '@/constants/routes';
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
-import { initSocket } from '@/utils/socket';
-import { TYPING_DEBOUNCE } from '@/constants/utils';
 
 const LogoComponent = () => (
   <SidebarGroup>
@@ -190,6 +191,7 @@ const EditorSidebar = ({
   connectedUsers,
   roomId,
   socketRef,
+  room,
 }: {
   connectedUsers: {
     userName: string;
@@ -198,6 +200,7 @@ const EditorSidebar = ({
   }[];
   roomId: string;
   socketRef: React.RefObject<Socket | null>;
+  room: Room;
 }) => {
   const { userDetails } = useUser();
   const navigate = useNavigate();
@@ -263,7 +266,7 @@ const EditorSidebar = ({
 
         <SidebarSeparator />
 
-        <LanguageSelector />
+        {room && room.ownerUuid === userDetails?.id && <LanguageSelector />}
         <ThemeSelector />
 
         <SidebarSeparator />

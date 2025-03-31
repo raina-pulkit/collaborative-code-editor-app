@@ -1,18 +1,19 @@
 import EditorSidebar from '@/components/editor-sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ACTIONS } from '@/constants/actions';
+import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
-import { Editor } from '@monaco-editor/react';
+import { Room } from '@/types/room';
+import { handleEmitTyping } from '@/utils/emit-typing';
 import { disconnectSocket, initSocket } from '@/utils/socket';
+import { Editor } from '@monaco-editor/react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { validate } from 'uuid';
-import { handleEmitTyping } from '@/utils/emit-typing';
-import { TYPING_DEBOUNCE } from '@/constants/utils';
 
-const EditorPage = () => {
+const EditorPage = ({ room }: { room: Room }) => {
   const socketRef = useRef<Socket | null>(null);
   const { id = '' } = useParams();
   const { userDetails } = useUser();
@@ -23,8 +24,10 @@ const EditorPage = () => {
   let lastTyping: Date | null = null;
   const firstTime = useRef(true);
 
+  console.log('found room: ', room);
+
   useEffect(() => {
-    if (!validate) {
+    if (!validate(id)) {
       toast.error('Invalid room ID', {
         description: 'Please enter a valid room ID',
         style: {
@@ -151,6 +154,7 @@ const EditorPage = () => {
         connectedUsers={connectedUsers}
         roomId={id || ''}
         socketRef={socketRef}
+        room={room}
       />
       <SidebarTrigger className="cursor-pointer hover:scale-110 transition-all duration-300" />
       <Editor
