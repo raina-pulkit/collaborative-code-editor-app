@@ -1,10 +1,10 @@
 import { UNAUTHORIZED_ERROR } from '@/constants/error';
-import { User } from '@/types/member-profile/user';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { Room } from '@/types/room';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
 
-const fetchUserDetails = async () => {
+const checkRoomHelper = async (roomId: string): Promise<Room> => {
   const response = await fetch(
-    `${import.meta.env.VITE_API_URL}/v1/user/get-data`,
+    `${import.meta.env.VITE_API_URL}/v1/room/${roomId}`,
     {
       method: 'GET',
       headers: {
@@ -21,13 +21,17 @@ const fetchUserDetails = async () => {
     throw new Error(`Error: ${response.statusText}`);
   }
 
-  const data: User = await response.json();
+  const data: Room = await response.json();
   return data;
 };
 
-export const useGetUserDetails = () => {
-  return useSuspenseQuery({
-    queryKey: ['getUserDetails'],
-    queryFn: fetchUserDetails,
+export const useHandleGetRoom = (
+  roomId: string,
+): UseQueryResult<Room | null> => {
+  const room = useQuery({
+    queryKey: ['getRoom'],
+    queryFn: () => (roomId ? checkRoomHelper(roomId) : null),
   });
+
+  return room;
 };

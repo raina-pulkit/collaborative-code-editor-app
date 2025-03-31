@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 
 const fetchAccessToken = async (code: string): Promise<string> => {
   const response = await fetch(
@@ -23,7 +23,7 @@ export const useGetAccessToken = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get('code');
 
-  return useQuery({
+  return useSuspenseQuery({
     queryKey: ['getAccessToken'],
     queryFn: async () => {
       if (!code) {

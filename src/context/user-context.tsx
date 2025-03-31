@@ -2,7 +2,7 @@ import { User } from '@/types/member-profile/user';
 import { createContext, useContext } from 'react';
 
 interface UserContextType {
-  userDetails: User | undefined;
+  userDetails: User;
   isLoading: boolean;
   error: Error | null;
 }

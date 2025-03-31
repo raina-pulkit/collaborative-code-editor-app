@@ -47,9 +47,9 @@ const AuthRedirectPage = (): JSX.Element => {
           padding: '2rem',
         }}
       >
-        <LoadingPage 
-          size={100} 
-          message={status === 'pending' || isFetching ? "Authorizing your access..." : "Redirecting..."} 
+        <LoadingPage
+          size={100}
+          message={isFetching ? 'Authorizing your access...' : 'Redirecting...'}
         />
       </Box>
     </Container>

@@ -6,6 +6,7 @@ import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
 import { handleEmitTyping } from '@/utils/emit-typing';
+import { useHandleGetRoom } from '@/utils/handle-check-room';
 import { disconnectSocket, initSocket } from '@/utils/socket';
 import { Editor } from '@monaco-editor/react';
 import { useAtomValue } from 'jotai';
@@ -14,6 +15,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { validate } from 'uuid';
+import { LoadingPage } from './loading-page';
 
 const EditorPage = () => {
   const socketRef = useRef<Socket | null>(null);
@@ -30,6 +32,13 @@ const EditorPage = () => {
   const language = useAtomValue(languageAtom);
   const theme = useAtomValue(themeAtom);
 
+  const {
+    data: fetchedRoom,
+    isLoading: isFetchingRoom,
+    error: roomFetchingError,
+    refetch: refetchEnteredRoom,
+  } = useHandleGetRoom(id || '');
+
   useEffect(() => {
     if (!validate(id)) {
       toast.error('Invalid room ID', {
@@ -39,6 +48,14 @@ const EditorPage = () => {
           color: 'white',
         },
       });
+      navigate(ROUTES.HOME);
+      return;
+    }
+
+    refetchEnteredRoom();
+
+    if (roomFetchingError) {
+      toast.error(roomFetchingError.message);
       navigate(ROUTES.HOME);
       return;
     }
@@ -167,53 +184,58 @@ const EditorPage = () => {
     userDetails?.name,
   ]);
 
-  return (
-    <SidebarProvider
-      style={{
-        backgroundColor: theme.currValue === 'vs-dark' ? '#1e1e1e' : 'white',
-      }}
-    >
-      <EditorSidebar
-        connectedUsers={connectedUsers}
-        roomId={id || ''}
-        socketRef={socketRef}
-      />
-      <SidebarTrigger
-        className="cursor-pointer hover:scale-110 transition-all duration-300"
+  return isFetchingRoom ? (
+    <LoadingPage />
+  ) : (
+    fetchedRoom && (
+      <SidebarProvider
         style={{
-          color: theme.currValue === 'vs-dark' ? 'white' : 'black',
+          backgroundColor: theme.currValue === 'vs-dark' ? '#1e1e1e' : 'white',
         }}
-      />
-      <Editor
-        height="100vh"
-        language={language.currValue}
-        theme={theme.currValue}
-        defaultValue="// some comment"
-        value={editorContent}
-        onChange={e => {
-          console.log('new text: ', e);
-          if (
-            !lastTyping ||
-            new Date().getTime() - lastTyping.getTime() > TYPING_DEBOUNCE
-          ) {
-            handleEmitTyping(socketRef, id, userDetails?.id || '');
-            lastTyping = new Date();
-          }
-          if (e !== undefined) {
-            socketRef.current?.emit(ACTIONS.CODE_CHANGE, {
-              id,
-              code: e,
-            });
-            codeRef.current = e;
-            setEditorContent(e);
-          }
-        }}
-        options={{
-          wordWrap: 'on',
-        }}
-      />
-      ;
-    </SidebarProvider>
+      >
+        <EditorSidebar
+          connectedUsers={connectedUsers}
+          roomId={id || ''}
+          socketRef={socketRef}
+          fetchedRoom={fetchedRoom}
+        />
+        <SidebarTrigger
+          className="cursor-pointer hover:scale-110 transition-all duration-300"
+          style={{
+            color: theme.currValue === 'vs-dark' ? 'white' : 'black',
+          }}
+        />
+        <Editor
+          height="100vh"
+          language={language.currValue}
+          theme={theme.currValue}
+          defaultValue="// some comment"
+          value={editorContent}
+          onChange={e => {
+            console.log('new text: ', e);
+            if (
+              !lastTyping ||
+              new Date().getTime() - lastTyping.getTime() > TYPING_DEBOUNCE
+            ) {
+              handleEmitTyping(socketRef, id, userDetails?.id || '');
+              lastTyping = new Date();
+            }
+            if (e !== undefined) {
+              socketRef.current?.emit(ACTIONS.CODE_CHANGE, {
+                id,
+                code: e,
+              });
+              codeRef.current = e;
+              setEditorContent(e);
+            }
+          }}
+          options={{
+            wordWrap: 'on',
+          }}
+        />
+        ;
+      </SidebarProvider>
+    )
   );
 };
 

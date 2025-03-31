@@ -4,17 +4,41 @@ import { CREATE_ROOM } from '@/constants/button-texts';
 import { ROUTES } from '@/constants/routes';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';
+import { usePageRefresh } from '@/hooks/use-page-refresh';
+import { useHandleGetRoom } from '@/utils/handle-check-room';
+import { useHandleCreateRoom } from '@/utils/handle-create-room';
 import { Box, Container, Typography } from '@mui/material';
 import { JSX, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { v7 as uuid, validate } from 'uuid';
+import { validate } from 'uuid';
 import { LoadingPage } from './loading-page';
 
 const HomePage = (): JSX.Element => {
   const { userDetails, isLoading, error } = useUser();
   const navigate = useNavigate();
   const [roomId, setRoomId] = useState<string>('');
+  const { refreshCurrentRoute } = usePageRefresh();
+  const [isPrivate] = useState<boolean>(false);
+  const [invitedUsers] = useState<string[]>([]);
+
+  const {
+    data: room,
+    isLoading: isCreatingRoom,
+    error: roomCreationError,
+    refetch: refetchRoom,
+  } = useHandleCreateRoom({
+    ownerUuid: userDetails.id,
+    isPrivate,
+    invitedUsers,
+  });
+
+  const {
+    data: fetchedRoom,
+    isLoading: isFetchingRoom,
+    error: roomFetchingError,
+    refetch: refetchEnteredRoom,
+  } = useHandleGetRoom(roomId);
 
   useEffect(() => {
     if (error) {
@@ -57,18 +81,29 @@ const HomePage = (): JSX.Element => {
           <Button
             variant="outline"
             onClick={() => {
-              const roomId = uuid();
-              navigate(`${ROUTES.EDITOR}/${roomId}`);
+              if (!userDetails) refreshCurrentRoute();
+              else {
+                refetchRoom();
+                if (roomCreationError) toast.error(roomCreationError.message);
+                else navigate(`${ROUTES.EDITOR}/${room?.id}`);
+              }
             }}
+            disabled={isCreatingRoom}
             className="text-black hover:bg-accent-foreground hover:text-white active:scale-95 transition-all duration-300 cursor-pointer"
           >
-            {CREATE_ROOM}
+            {isCreatingRoom ? 'Creating...' : CREATE_ROOM}
           </Button>
           <form
             onSubmit={e => {
               e.preventDefault();
-              if (validate(roomId)) navigate(`${ROUTES.EDITOR}/${roomId}`);
-              else
+              if (validate(roomId)) {
+                refetchEnteredRoom();
+
+                if (!isFetchingRoom && !roomFetchingError)
+                  navigate(`${ROUTES.EDITOR}/${fetchedRoom?.id}`);
+                else if (roomFetchingError)
+                  toast.error(roomFetchingError?.message);
+              } else
                 toast.error('Invalid room id', {
                   style: {
                     backgroundColor: 'red',
