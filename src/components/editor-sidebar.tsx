@@ -5,7 +5,6 @@ import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
 import { Room } from '@/types/room';
-import { initSocket } from '@/utils/socket';
 import { Box } from '@mui/material';
 import { useAtom } from 'jotai';
 import { useEffect } from 'react';
@@ -130,8 +129,8 @@ const LanguageSelector = () => {
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue
-                defaultValue={lang.defaultValue}
-                placeholder={lang.defaultLabel}
+                defaultValue={lang.currValue || lang.defaultValue}
+                placeholder={lang.currLabel || lang.defaultLabel}
               />
             </SelectTrigger>
             <SelectContent>
@@ -207,32 +206,7 @@ const EditorSidebar = ({
 
   useEffect(() => {
     const init = async () => {
-      if (!socketRef?.current) {
-        socketRef.current = await initSocket();
-        socketRef.current.connect();
-
-        socketRef.current.on('connect', () => {
-          toast.success('Connected to the socket server', {
-            style: {
-              backgroundColor: 'green',
-              color: 'white',
-            },
-          });
-
-          // Only emit join after successful connection
-          socketRef.current?.emit(ACTIONS.JOIN, {
-            id: roomId,
-            userName:
-              userDetails?.name ||
-              userDetails?.githubUsername ||
-              'Unknown User',
-            userId: userDetails?.id,
-            avatarUrl: userDetails?.avatarUrl,
-          });
-        });
-      }
-
-      socketRef.current.on(
+      socketRef.current?.on(
         ACTIONS.SOMEONE_TYPING,
         ({ userName, userId }: { userName: string; userId: string }) => {
           if (userId !== userDetails?.id) {

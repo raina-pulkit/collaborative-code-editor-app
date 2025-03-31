@@ -88,6 +88,7 @@ const HomePage = (): JSX.Element => {
           textAlign: 'center',
           padding: '2rem',
           color: 'white',
+          gap: '2rem',
         }}
       >
         <Typography variant="h2" component="h1" gutterBottom>
@@ -100,36 +101,44 @@ const HomePage = (): JSX.Element => {
           Start coding with your team in real-time. Create or join a session to
           begin collaborating.
         </Typography>
-        <form
-          onSubmit={e => {
-            e.preventDefault();
-            if (validate(roomId)) navigate(`${ROUTES.EDITOR}/${roomId}`);
-            else
-              toast.error('Invalid room id', {
-                description: 'Please enter a valid room id',
-                descriptionClassName: 'text-white',
-                style: {
-                  backgroundColor: 'red',
-                  color: 'white',
-                },
-              });
-          }}
-          className="flex gap-2 mt-10"
-        >
-          <Input
-            placeholder="Enter room id"
-            value={roomId}
-            onChange={e => setRoomId(e.target.value)}
-          />
-          <Button type="submit">Join Room</Button>
-        </form>
-        <Button
-          variant="outline"
-          onClick={handleCreateRoom}
-          disabled={isCreatingRoom}
-        >
-          {CREATE_ROOM}
-        </Button>
+        <div className="flex gap-4 min-w-2xl flex-wrap justify-center items-center">
+          <Button
+            variant="outline"
+            onClick={handleCreateRoom}
+            disabled={isCreatingRoom}
+            className="text-black hover:bg-accent-foreground hover:text-white active:scale-95 transition-all duration-300 cursor-pointer"
+          >
+            {isCreatingRoom ? 'Creating...' : CREATE_ROOM}
+          </Button>
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              if (validate(roomId)) navigate(`${ROUTES.EDITOR}/${roomId}`);
+              else
+                toast.error('Invalid room id', {
+                  description: 'Please enter a valid room id',
+                  descriptionClassName: 'text-white',
+                  style: {
+                    backgroundColor: 'red',
+                    color: 'white',
+                  },
+                });
+            }}
+            className="flex w-full gap-2"
+          >
+            <Input
+              placeholder="Enter room id"
+              value={roomId}
+              onChange={e => setRoomId(e.target.value)}
+            />
+            <Button
+              type="submit"
+              className="cursor-pointer hover:bg-white hover:text-black active:scale-95 transition-all duration-300"
+            >
+              Join Room
+            </Button>
+          </form>
+        </div>
       </Box>
     </Container>
   );
