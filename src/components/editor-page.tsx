@@ -26,7 +26,7 @@ const EditorPage = ({ room }: { room: Room }) => {
     { userName: string; avatarUrl: string; userId: string }[]
   >([]);
   const navigate = useNavigate();
-  let lastTyping: Date | null = null;
+  const lastTypingRef = useRef<Date | null>(null);
   const firstTime = useRef(true);
   const language = useAtomValue(languageAtom);
   const theme = useAtomValue(themeAtom);
@@ -193,22 +193,25 @@ const EditorPage = ({ room }: { room: Room }) => {
         defaultValue="// some comment"
         value={editorContent}
         onChange={e => {
-          console.log('new text: ', e);
+          if (e === undefined) return;
+
           if (
-            !lastTyping ||
-            new Date().getTime() - lastTyping.getTime() > TYPING_DEBOUNCE
+            !lastTypingRef.current ||
+            new Date().getTime() - lastTypingRef.current.getTime() >
+              TYPING_DEBOUNCE
           ) {
             handleEmitTyping(socketRef, id, userDetails?.id || '');
-            lastTyping = new Date();
+
+            lastTypingRef.current = new Date();
+            console.log('typing updated: ', lastTypingRef.current);
           }
-          if (e !== undefined) {
-            socketRef.current?.emit(ACTIONS.CODE_CHANGE, {
-              id,
-              code: e,
-            });
-            codeRef.current = e;
-            setEditorContent(e);
-          }
+
+          socketRef.current?.emit(ACTIONS.CODE_CHANGE, {
+            id,
+            code: e,
+          });
+          codeRef.current = e;
+          setEditorContent(e);
         }}
         options={{
           wordWrap: 'on',
