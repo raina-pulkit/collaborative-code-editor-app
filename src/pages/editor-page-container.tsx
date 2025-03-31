@@ -34,6 +34,10 @@ const EditorPageContainer = () => {
           },
         );
 
+        if (!response.data) {
+          throw new Error('Room not found');
+        }
+
         setRoom(response.data);
       } catch (error: any) {
         if (error.response?.status === 401) {

@@ -6,6 +6,7 @@ export interface Room {
   owner: User;
   isPrivate: boolean;
   invitedUsers: User[];
+  lastLanguage: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
@@ -16,6 +17,7 @@ export interface CreateRoomDto {
   ownerUuid: string;
   isPrivate: boolean;
   invitedUsers: string[];
+  lastLanguage: string;
 }
 
 export interface GetRoomsDto {
