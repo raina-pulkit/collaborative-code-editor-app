@@ -1,19 +1,24 @@
 import EditorSidebar from '@/components/editor-sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ACTIONS } from '@/constants/actions';
+import { ROUTES } from '@/constants/routes';
+import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
-import { Editor } from '@monaco-editor/react';
+import { languageAtom, themeAtom } from '@/jotai/atoms';
+import { handleEmitTyping } from '@/utils/emit-typing';
 import { disconnectSocket, initSocket } from '@/utils/socket';
+import { Editor } from '@monaco-editor/react';
+import { useAtomValue } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { validate } from 'uuid';
-import { handleEmitTyping } from '@/utils/emit-typing';
-import { TYPING_DEBOUNCE } from '@/constants/utils';
 
 const EditorPage = () => {
   const socketRef = useRef<Socket | null>(null);
+  const codeRef = useRef<string>('// some comment');
+  const [editorContent, setEditorContent] = useState<string>('// some comment');
   const { id = '' } = useParams();
   const { userDetails } = useUser();
   const [connectedUsers, setConnectedUsers] = useState<
@@ -22,9 +27,11 @@ const EditorPage = () => {
   const navigate = useNavigate();
   let lastTyping: Date | null = null;
   const firstTime = useRef(true);
+  const language = useAtomValue(languageAtom);
+  const theme = useAtomValue(themeAtom);
 
   useEffect(() => {
-    if (!validate) {
+    if (!validate(id)) {
       toast.error('Invalid room ID', {
         description: 'Please enter a valid room ID',
         style: {
@@ -32,9 +39,10 @@ const EditorPage = () => {
           color: 'white',
         },
       });
-      navigate('/');
+      navigate(ROUTES.HOME);
       return;
     }
+
     let mounted = true;
 
     const init = async () => {
@@ -71,6 +79,11 @@ const EditorPage = () => {
               userId: userDetails?.id,
               avatarUrl: userDetails?.avatarUrl,
             });
+
+            socket.emit(ACTIONS.CODE_CHANGE, {
+              id,
+              code: undefined,
+            });
             console.log('first time made false');
             firstTime.current = false;
           });
@@ -87,7 +100,7 @@ const EditorPage = () => {
           });
 
           // Check if someone joined the room
-          socket.on(ACTIONS.JOINED, ({ clients, userName, userId }) => {
+          socket.on(ACTIONS.JOINED, ({ clients, userName, userId, code }) => {
             if (!mounted) return;
             if (userDetails?.id !== userId) {
               toast.success(`${userName} joined the room`, {
@@ -100,6 +113,9 @@ const EditorPage = () => {
             }
 
             setConnectedUsers(clients);
+            if (code !== undefined) {
+              setEditorContent(code);
+            }
           });
 
           // Check if someone left the room
@@ -118,6 +134,12 @@ const EditorPage = () => {
             setConnectedUsers(prev =>
               prev.filter(user => user.userId !== userId),
             );
+          });
+
+          socket.on(ACTIONS.SYNC_CODE, ({ code }) => {
+            console.log('syncing code: ', code);
+            codeRef.current = code;
+            setEditorContent(code);
           });
         }
       } catch (err) {
@@ -146,17 +168,28 @@ const EditorPage = () => {
   ]);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={{
+        backgroundColor: theme.currValue === 'vs-dark' ? '#1e1e1e' : 'white',
+      }}
+    >
       <EditorSidebar
         connectedUsers={connectedUsers}
         roomId={id || ''}
         socketRef={socketRef}
       />
-      <SidebarTrigger className="cursor-pointer hover:scale-110 transition-all duration-300" />
+      <SidebarTrigger
+        className="cursor-pointer hover:scale-110 transition-all duration-300"
+        style={{
+          color: theme.currValue === 'vs-dark' ? 'white' : 'black',
+        }}
+      />
       <Editor
         height="100vh"
-        defaultLanguage="javascript"
+        language={language.currValue}
+        theme={theme.currValue}
         defaultValue="// some comment"
+        value={editorContent}
         onChange={e => {
           console.log('new text: ', e);
           if (
@@ -166,6 +199,17 @@ const EditorPage = () => {
             handleEmitTyping(socketRef, id, userDetails?.id || '');
             lastTyping = new Date();
           }
+          if (e !== undefined) {
+            socketRef.current?.emit(ACTIONS.CODE_CHANGE, {
+              id,
+              code: e,
+            });
+            codeRef.current = e;
+            setEditorContent(e);
+          }
+        }}
+        options={{
+          wordWrap: 'on',
         }}
       />
       ;

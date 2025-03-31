@@ -1,1 +1,1 @@
-export const CREATE_ROOM = 'Create Random Room';
+export const CREATE_ROOM = 'Create New Room';
