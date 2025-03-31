@@ -5,6 +5,7 @@ import { ROUTES } from '@/constants/routes';
 import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
+import { Room } from '@/types/room';
 import { handleEmitTyping } from '@/utils/emit-typing';
 import { disconnectSocket, initSocket } from '@/utils/socket';
 import { Editor } from '@monaco-editor/react';
@@ -15,7 +16,7 @@ import { Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { validate } from 'uuid';
 
-const EditorPage = () => {
+const EditorPage = ({ room }: { room: Room }) => {
   const socketRef = useRef<Socket | null>(null);
   const codeRef = useRef<string>('// some comment');
   const [editorContent, setEditorContent] = useState<string>('// some comment');
@@ -177,6 +178,7 @@ const EditorPage = () => {
         connectedUsers={connectedUsers}
         roomId={id || ''}
         socketRef={socketRef}
+        room={room}
       />
       <SidebarTrigger
         className="cursor-pointer hover:scale-110 transition-all duration-300"

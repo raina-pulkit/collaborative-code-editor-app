@@ -4,17 +4,65 @@ import { CREATE_ROOM } from '@/constants/button-texts';
 import { ROUTES } from '@/constants/routes';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';
+import { Room } from '@/types/room';
 import { Box, Container, Typography } from '@mui/material';
+import axios, { AxiosResponse } from 'axios';
 import { JSX, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { v7 as uuid, validate } from 'uuid';
+import { validate } from 'uuid';
 import { LoadingPage } from './loading-page';
 
 const HomePage = (): JSX.Element => {
   const { userDetails, isLoading, error } = useUser();
   const navigate = useNavigate();
   const [roomId, setRoomId] = useState<string>('');
+  const [isPrivate, _setIsPrivate] = useState<boolean>(false);
+  const [invitedUsers, _setInvitedUsers] = useState<string[]>([]);
+  const [isCreatingRoom, setIsCreatingRoom] = useState<boolean>(false);
+
+  const handleCreateRoom = async () => {
+    setIsCreatingRoom(true);
+    try {
+      const response: AxiosResponse<Room> = await axios.post(
+        `${import.meta.env.VITE_API_URL}/v1/room`,
+        {
+          ownerUuid: userDetails?.id,
+          isPrivate,
+          invitedUsers,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        },
+      );
+
+      if (response.status === 401) {
+        localStorage.removeItem('accessToken');
+        navigate(ROUTES.LOGIN);
+        return;
+      }
+
+      if (response.status === 201) {
+        navigate(`${ROUTES.EDITOR}/${response.data.id}`);
+        return;
+      } else {
+        toast.error('Failed to create room', {
+          description: response.statusText,
+        });
+        return;
+      }
+    } catch (error: any) {
+      toast.error('Failed to create room', {
+        description: error.message,
+      });
+    } finally {
+      setIsCreatingRoom(false);
+    }
+  };
 
   useEffect(() => {
     if (error) {
@@ -53,16 +101,14 @@ const HomePage = (): JSX.Element => {
           Start coding with your team in real-time. Create or join a session to
           begin collaborating.
         </Typography>
-        <div className="flex gap-4 min-w-2xl">
+        <div className="flex gap-4 min-w-2xl flex-wrap justify-center items-center">
           <Button
             variant="outline"
-            onClick={() => {
-              const roomId = uuid();
-              navigate(`${ROUTES.EDITOR}/${roomId}`);
-            }}
+            onClick={handleCreateRoom}
+            disabled={isCreatingRoom}
             className="text-black hover:bg-accent-foreground hover:text-white active:scale-95 transition-all duration-300 cursor-pointer"
           >
-            {CREATE_ROOM}
+            {isCreatingRoom ? 'Creating...' : CREATE_ROOM}
           </Button>
           <form
             onSubmit={e => {
@@ -70,6 +116,8 @@ const HomePage = (): JSX.Element => {
               if (validate(roomId)) navigate(`${ROUTES.EDITOR}/${roomId}`);
               else
                 toast.error('Invalid room id', {
+                  description: 'Please enter a valid room id',
+                  descriptionClassName: 'text-white',
                   style: {
                     backgroundColor: 'red',
                     color: 'white',

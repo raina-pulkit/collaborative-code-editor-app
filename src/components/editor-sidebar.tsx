@@ -4,6 +4,7 @@ import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/constants/sidebar-options';
 import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
+import { Room } from '@/types/room';
 import { Box } from '@mui/material';
 import { useAtom } from 'jotai';
 import { useEffect } from 'react';
@@ -189,6 +190,7 @@ const EditorSidebar = ({
   connectedUsers,
   roomId,
   socketRef,
+  room,
 }: {
   connectedUsers: {
     userName: string;
@@ -197,6 +199,7 @@ const EditorSidebar = ({
   }[];
   roomId: string;
   socketRef: React.RefObject<Socket | null>;
+  room: Room;
 }) => {
   const { userDetails } = useUser();
   const navigate = useNavigate();
@@ -237,7 +240,7 @@ const EditorSidebar = ({
 
         <SidebarSeparator />
 
-        <LanguageSelector />
+        {room && room.ownerUuid === userDetails?.id && <LanguageSelector />}
         <ThemeSelector />
 
         <SidebarSeparator />
