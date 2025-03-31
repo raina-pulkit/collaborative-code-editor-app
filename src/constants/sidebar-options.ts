@@ -25,7 +25,11 @@ export const LANGUAGE_OPTIONS = [
   { value: 'yaml', label: 'yaml' },
 ];
 
+export const DEFAULT_LANGUAGE = LANGUAGE_OPTIONS[21];
+
 export const THEME_OPTIONS = [
   { value: 'light', label: 'Light' },
   { value: 'vs-dark', label: 'Dark' },
 ];
+
+export const DEFAULT_THEME = THEME_OPTIONS[0];

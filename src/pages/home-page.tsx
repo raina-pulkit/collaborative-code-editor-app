@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CREATE_ROOM } from '@/constants/button-texts';
 import { ROUTES } from '@/constants/routes';
+import { DEFAULT_LANGUAGE } from '@/constants/sidebar-options';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';
 import { Room } from '@/types/room';
@@ -30,6 +31,7 @@ const HomePage = (): JSX.Element => {
           ownerUuid: userDetails?.id,
           isPrivate,
           invitedUsers,
+          lastLanguage: DEFAULT_LANGUAGE.value,
         },
         {
           headers: {

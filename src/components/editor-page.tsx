@@ -61,7 +61,6 @@ const EditorPage = ({ room }: { room: Room }) => {
           socket.connect();
 
           socket.on('connect', () => {
-            console.log('first time: =', firstTime.current);
             if (!mounted || !firstTime.current) return;
             toast.success('Connected to the socket server', {
               style: {
@@ -85,7 +84,6 @@ const EditorPage = ({ room }: { room: Room }) => {
               id,
               code: undefined,
             });
-            console.log('first time made false');
             firstTime.current = false;
           });
 
@@ -138,7 +136,6 @@ const EditorPage = ({ room }: { room: Room }) => {
           });
 
           socket.on(ACTIONS.SYNC_CODE, ({ code }) => {
-            console.log('syncing code: ', code);
             codeRef.current = code;
             setEditorContent(code);
           });
@@ -203,7 +200,6 @@ const EditorPage = ({ room }: { room: Room }) => {
             handleEmitTyping(socketRef, id, userDetails?.id || '');
 
             lastTypingRef.current = new Date();
-            console.log('typing updated: ', lastTypingRef.current);
           }
 
           socketRef.current?.emit(ACTIONS.CODE_CHANGE, {

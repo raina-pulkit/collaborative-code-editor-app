@@ -1,4 +1,4 @@
-import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/constants/sidebar-options';
+import { DEFAULT_LANGUAGE, DEFAULT_THEME } from '@/constants/sidebar-options';
 import { atom } from 'jotai';
 import { Getter, Setter } from 'jotai/vanilla';
 
@@ -30,18 +30,18 @@ const localStorageEffect =
 
 export const languageAtom = atom({
   key: 'language',
-  defaultValue: LANGUAGE_OPTIONS[21].value,
-  defaultLabel: LANGUAGE_OPTIONS[21].label,
-  currValue: LANGUAGE_OPTIONS[21].value,
-  currLabel: LANGUAGE_OPTIONS[21].label,
+  defaultValue: DEFAULT_LANGUAGE.value,
+  defaultLabel: DEFAULT_LANGUAGE.label,
+  currValue: DEFAULT_LANGUAGE.value,
+  currLabel: DEFAULT_LANGUAGE.label,
   effects_UNSTABLE: [localStorageEffect('language')],
 });
 
 export const themeAtom = atom({
   key: 'theme',
-  defaultValue: THEME_OPTIONS[0].value,
-  defaultLabel: THEME_OPTIONS[0].label,
-  currValue: THEME_OPTIONS[0].value,
-  currLabel: THEME_OPTIONS[0].label,
+  defaultValue: DEFAULT_THEME.value,
+  defaultLabel: DEFAULT_THEME.label,
+  currValue: DEFAULT_THEME.value,
+  currLabel: DEFAULT_THEME.label,
   effects_UNSTABLE: [localStorageEffect('theme')],
 });

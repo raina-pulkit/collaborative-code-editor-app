@@ -40,7 +40,6 @@ const EditorPageContainer = () => {
 
         setRoom(response.data);
       } catch (error: any) {
-        console.log('error: ', error);
         if (error.response?.status === 401) {
           localStorage.removeItem('accessToken');
           toast.error('Authentication failed', {
