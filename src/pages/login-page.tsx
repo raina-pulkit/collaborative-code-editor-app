@@ -1,6 +1,20 @@
 import { LoginForm } from '@/components/login-form';
+import { ROUTES } from '@/constants/routes';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      // If token exists, redirect to home page
+      navigate(ROUTES.HOME);
+    }
+  }, [navigate]);
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2 bg-zinc-700">
       <div className="flex flex-col gap-4 p-6 md:p-10 relative">
