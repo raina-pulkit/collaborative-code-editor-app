@@ -112,9 +112,11 @@ const CurrentlyConnectedUsers = ({
 const LanguageSelector = ({
   room,
   firstRender,
+  socketRef,
 }: {
   room: Room;
   firstRender: React.RefObject<boolean>;
+  socketRef: React.RefObject<Socket | null>;
 }) => {
   const [lang, setLang] = useAtom(languageAtom);
   const { userDetails } = useUser();
@@ -131,7 +133,11 @@ const LanguageSelector = ({
         LANGUAGE_OPTIONS.find(item => item.value === room.lastLanguage)
           ?.label || lang.defaultLabel,
     });
-  }, []);
+
+    return () => {
+      socketRef.current?.removeListener(ACTIONS.LANGUAGE_CHANGE_HANDLE);
+    };
+  }, [lang]);
 
   const handleLanguageChange = async (
     value: string,
@@ -178,6 +184,11 @@ const LanguageSelector = ({
       toast.error('Failed to update language');
       console.error(error);
     }
+
+    socketRef.current?.emit(ACTIONS.LANGUAGE_CHANGE, {
+      id: roomId,
+      language: value,
+    });
   };
 
   return (
@@ -257,6 +268,7 @@ export const EditorSidebar = ({
   roomId,
   socketRef,
   room,
+  language,
 }: {
   connectedUsers: {
     userName: string;
@@ -266,6 +278,12 @@ export const EditorSidebar = ({
   roomId: string;
   socketRef: React.RefObject<Socket | null>;
   room: Room;
+  language: {
+    currValue: string;
+    currLabel: string;
+    defaultValue: string;
+    defaultLabel: string;
+  };
 }) => {
   const { userDetails } = useUser();
   const navigate = useNavigate();
@@ -308,8 +326,14 @@ export const EditorSidebar = ({
 
         <SidebarSeparator />
 
-        {room && room.ownerUuid === userDetails?.id && (
-          <LanguageSelector room={room} firstRender={firstRender} />
+        {room && room.ownerUuid === userDetails?.id ? (
+          <LanguageSelector
+            room={room}
+            firstRender={firstRender}
+            socketRef={socketRef}
+          />
+        ) : (
+          <Box>Current Language: {language.currValue}</Box>
         )}
         <ThemeSelector />
 

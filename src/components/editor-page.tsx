@@ -2,6 +2,7 @@ import { EditorSidebar } from '@/components/editor-sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ACTIONS } from '@/constants/actions';
 import { ROUTES } from '@/constants/routes';
+import { LANGUAGE_OPTIONS } from '@/constants/sidebar-options';
 import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
@@ -9,7 +10,7 @@ import { Room } from '@/types/room';
 import { handleEmitTyping } from '@/utils/emit-typing';
 import { disconnectSocket, initSocket } from '@/utils/socket';
 import { Editor } from '@monaco-editor/react';
-import { useAtomValue } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
@@ -28,7 +29,7 @@ const EditorPage = ({ room }: { room: Room }) => {
   const navigate = useNavigate();
   const lastTypingRef = useRef<Date | null>(null);
   const firstTime = useRef(true);
-  const language = useAtomValue(languageAtom);
+  const [language, setLanguage] = useAtom(languageAtom);
   const theme = useAtomValue(themeAtom);
 
   useEffect(() => {
@@ -140,6 +141,19 @@ const EditorPage = ({ room }: { room: Room }) => {
             codeRef.current = code;
             setEditorContent(code);
           });
+
+          socketRef.current?.on(
+            ACTIONS.LANGUAGE_CHANGE_HANDLE,
+            ({ language }) => {
+              setLanguage({
+                ...language,
+                currValue: language,
+                currLabel:
+                  LANGUAGE_OPTIONS.find(item => item.value === language)
+                    ?.label || language.defaultLabel,
+              });
+            },
+          );
         }
       } catch (err) {
         if (!mounted) return;
@@ -149,6 +163,14 @@ const EditorPage = ({ room }: { room: Room }) => {
     };
 
     init();
+
+    setLanguage({
+      ...language,
+      currValue: room.lastLanguage,
+      currLabel:
+        LANGUAGE_OPTIONS.find(item => item.value === room.lastLanguage)
+          ?.label || language.defaultLabel,
+    });
 
     return () => {
       mounted = false;
@@ -179,6 +201,7 @@ const EditorPage = ({ room }: { room: Room }) => {
         roomId={id || ''}
         socketRef={socketRef}
         room={room}
+        language={language}
       />
       <SidebarTrigger
         className="cursor-pointer hover:scale-110 transition-all duration-300"
