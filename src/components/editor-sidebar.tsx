@@ -1,19 +1,27 @@
 import { ACTIONS } from '@/constants/actions';
 import { ROUTES } from '@/constants/routes';
 import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/constants/sidebar-options';
-import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
+import { useEndRoom } from '@/hooks/use-end-room';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
 import { Room } from '@/types/room';
 import { Box } from '@mui/material';
 import axios from 'axios';
 import { useAtom } from 'jotai';
+import { Ban, SquareArrowLeft } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import {
   Select,
@@ -271,31 +279,28 @@ const EditorSidebar = ({
   const navigate = useNavigate();
 
   const firstRender = useRef(true);
+  const { mutate: endRoom } = useEndRoom();
 
-  useEffect(() => {
-    const init = async () => {
-      socketRef.current?.on(
-        ACTIONS.SOMEONE_TYPING,
-        ({ userName, userId }: { userName: string; userId: string }) => {
-          if (userId !== userDetails?.id) {
-            toast.info(`${userName} is typing...`, {
-              style: {
-                backgroundColor: 'blue',
-                color: 'white',
-              },
-              duration: TYPING_DEBOUNCE,
-            });
-          }
-        },
-      );
-    };
-    init();
+  const handleLeaveRoom = async (leaveAll: boolean) => {
+    if (!leaveAll) {
+      socketRef.current?.emit(ACTIONS.LEAVE, {
+        id: roomId,
+        userName:
+          userDetails?.name || userDetails?.githubUsername || 'Unknown User',
+        userId: userDetails?.id,
+      });
 
-    return () => {
-      // Cleanup
-      socketRef.current?.removeListener(ACTIONS.SOMEONE_TYPING);
-    };
-  });
+      endRoom({ id: roomId });
+    } else
+      socketRef.current?.emit(ACTIONS.END_ROOM, {
+        id: roomId,
+        userName:
+          userDetails?.name || userDetails?.githubUsername || 'Unknown User',
+        userId: userDetails?.id,
+      });
+    toast.success('You have left the room');
+    navigate(ROUTES.HOME);
+  };
 
   return (
     <Sidebar>
@@ -332,24 +337,55 @@ const EditorSidebar = ({
 
         <SidebarSeparator />
 
-        <Button
-          className="border-none p-2.5 rounded-2xl text-md font-bold cursor-pointer transition-all ease-in-out duration-300 bg-red-400 text-black hover:text-white"
-          onClick={async e => {
-            e.preventDefault();
-            socketRef.current?.emit(ACTIONS.LEAVE, {
-              id: roomId,
-              userName:
-                userDetails?.name ||
-                userDetails?.githubUsername ||
-                'Unknown User',
-              userId: userDetails?.id,
-            });
-            toast.success('You have left the room');
-            navigate(ROUTES.HOME);
-          }}
-        >
-          Leave Room
-        </Button>
+        {room && room.ownerUuid === userDetails?.id ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="destructive"
+                className="border-none p-2.5 rounded-2xl text-md font-bold cursor-pointer transition-all ease-in-out duration-300 bg-red-400 text-black hover:scale-105"
+              >
+                Leave Room
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={async e => {
+                    e.preventDefault();
+                    await handleLeaveRoom(false);
+                  }}
+                >
+                  <SquareArrowLeft />
+                  <span>Just Leave</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={async e => {
+                    e.preventDefault();
+                    await handleLeaveRoom(true);
+                  }}
+                >
+                  <Ban />
+                  <span>
+                    End Room for{' '}
+                    <span className="font-bold underline">ALL</span>
+                  </span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button
+            className="border-none p-2.5 rounded-2xl text-md font-bold cursor-pointer transition-all ease-in-out duration-300 bg-red-400 text-black hover:text-white"
+            onClick={async e => {
+              e.preventDefault();
+              await handleLeaveRoom(false);
+            }}
+          >
+            Leave Room
+          </Button>
+        )}
       </SidebarContent>
     </Sidebar>
   );

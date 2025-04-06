@@ -1,9 +1,9 @@
+import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/constants/routes';
 import { Box, Container, Typography } from '@mui/material';
 import { JSX, useEffect } from 'react';
-import { useError } from '../context/error-context';
 import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '@/constants/routes';
-import { Button } from '@/components/ui/button';
+import { useError } from '../context/error-context';
 
 const ErrorPage = (): JSX.Element => {
   const { errorMessage: contextErrorMessage, setErrorMessage } = useError();
@@ -19,7 +19,8 @@ const ErrorPage = (): JSX.Element => {
       setErrorMessage('');
       navigate(ROUTES.LOGIN);
     }
-  }, [contextErrorMessage, navigate, setErrorMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contextErrorMessage, navigate]);
 
   const handleGoHome = () => {
     setErrorMessage('');

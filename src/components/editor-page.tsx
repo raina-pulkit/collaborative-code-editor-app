@@ -139,6 +139,34 @@ const EditorPage = ({ room }: { room: Room }) => {
             codeRef.current = code;
             setEditorContent(code);
           });
+
+          socket.on(ACTIONS.END_ROOM_ACK, () => {
+            console.log('End room ack received');
+            socketRef.current?.disconnect();
+            navigate(ROUTES.HOME);
+            toast.success('Room ended', {
+              position: 'top-center',
+              style: {
+                backgroundColor: 'orangered',
+                color: 'white',
+              },
+            });
+          });
+
+          socket.on(
+            ACTIONS.SOMEONE_TYPING,
+            ({ userName, userId }: { userName: string; userId: string }) => {
+              if (userId !== userDetails?.id) {
+                toast.info(`${userName} is typing...`, {
+                  style: {
+                    backgroundColor: 'blue',
+                    color: 'white',
+                  },
+                  duration: TYPING_DEBOUNCE,
+                });
+              }
+            },
+          );
         }
       } catch (err) {
         if (!mounted) return;

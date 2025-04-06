@@ -14,6 +14,7 @@ const EditorPageContainer = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+  // Fetch room data
   useEffect(() => {
     const fetchRoom = async () => {
       if (!id) {
@@ -65,7 +66,17 @@ const EditorPageContainer = () => {
     };
 
     fetchRoom();
-  }, [id, navigate]);
+  }, [id, navigate]); // Removed room from dependencies
+
+  // Check for deleted room in a separate effect
+  useEffect(() => {
+    if (room && room.deletedAt) {
+      toast.error('Room has been deleted', {
+        description: 'Please create a new room',
+      });
+      navigate(ROUTES.HOME);
+    }
+  }, [room, navigate]);
 
   if (isLoading) {
     return <LoadingPage message="Loading your room..." />;
