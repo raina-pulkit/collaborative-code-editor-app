@@ -252,7 +252,7 @@ const ThemeSelector = () => {
   );
 };
 
-const EditorSidebar = ({
+export const EditorSidebar = ({
   connectedUsers,
   roomId,
   socketRef,
@@ -354,5 +354,3 @@ const EditorSidebar = ({
     </Sidebar>
   );
 };
-
-export default EditorSidebar;

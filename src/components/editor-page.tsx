@@ -1,4 +1,4 @@
-import EditorSidebar from '@/components/editor-sidebar';
+import { EditorSidebar } from '@/components/editor-sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ACTIONS } from '@/constants/actions';
 import { ROUTES } from '@/constants/routes';
@@ -120,19 +120,20 @@ const EditorPage = ({ room }: { room: Room }) => {
           // Check if someone left the room
           socket.on(ACTIONS.DISCONNECTED, ({ userName, userId }) => {
             if (!mounted) return;
-            if (userDetails?.id !== userId) {
-              toast.success(`${userName} left the room`, {
-                position: 'top-center',
-                style: {
-                  backgroundColor: 'orangered',
-                  color: 'white',
-                },
-              });
-            }
 
-            setConnectedUsers(prev =>
-              prev.filter(user => user.userId !== userId),
-            );
+            setConnectedUsers(prev => {
+              if (prev.some(user => user.userId === userId)) {
+                toast.success(`${userName} left the room`, {
+                  position: 'top-center',
+                  style: {
+                    backgroundColor: 'orangered',
+                    color: 'white',
+                  },
+                });
+              }
+
+              return prev.filter(user => user.userId !== userId);
+            });
           });
 
           socket.on(ACTIONS.SYNC_CODE, ({ code }) => {
@@ -164,6 +165,8 @@ const EditorPage = ({ room }: { room: Room }) => {
     userDetails?.id,
     userDetails?.name,
   ]);
+
+  console.log('connectedUsers: ', connectedUsers);
 
   return (
     <SidebarProvider
