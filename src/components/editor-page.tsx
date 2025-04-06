@@ -123,7 +123,11 @@ const EditorPage = ({ room }: { room: Room }) => {
             if (!mounted) return;
 
             setConnectedUsers(prev => {
-              if (prev.some(user => user.userId === userId)) {
+              // Only show toast if user was in the list
+              const userWasConnected = prev.some(
+                user => user.userId === userId,
+              );
+              if (userWasConnected) {
                 toast.success(`${userName} left the room`, {
                   position: 'top-center',
                   style: {
@@ -142,18 +146,15 @@ const EditorPage = ({ room }: { room: Room }) => {
             setEditorContent(code);
           });
 
-          socketRef.current?.on(
-            ACTIONS.LANGUAGE_CHANGE_HANDLE,
-            ({ language }) => {
-              setLanguage({
-                ...language,
-                currValue: language,
-                currLabel:
-                  LANGUAGE_OPTIONS.find(item => item.value === language)
-                    ?.label || language.defaultLabel,
-              });
-            },
-          );
+          socket.on(ACTIONS.LANGUAGE_CHANGE_HANDLE, ({ language }) => {
+            setLanguage({
+              ...language,
+              currValue: language,
+              currLabel:
+                LANGUAGE_OPTIONS.find(item => item.value === language)?.label ||
+                language.defaultLabel,
+            });
+          });
         }
       } catch (err) {
         if (!mounted) return;
@@ -186,6 +187,8 @@ const EditorPage = ({ room }: { room: Room }) => {
     userDetails?.githubUsername,
     userDetails?.id,
     userDetails?.name,
+    navigate,
+    room.lastLanguage,
   ]);
 
   return (
