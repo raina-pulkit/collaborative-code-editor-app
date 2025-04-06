@@ -141,7 +141,6 @@ const EditorPage = ({ room }: { room: Room }) => {
           });
 
           socket.on(ACTIONS.END_ROOM_ACK, () => {
-            console.log('End room ack received');
             socketRef.current?.disconnect();
             navigate(ROUTES.HOME);
             toast.success('Room ended', {

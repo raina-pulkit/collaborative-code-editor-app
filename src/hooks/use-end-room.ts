@@ -1,7 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 
 const updateRoomToDeleted = async ({ id }: { id: string }) => {
-  console.log('trying to end room: ', id);
   const response = await fetch(
     `${import.meta.env.VITE_API_URL}/v1/room/${id}`,
     {

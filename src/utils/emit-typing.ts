@@ -6,7 +6,6 @@ export const handleEmitTyping = async (
   id: string,
   userId: string,
 ) => {
-  console.log('emitting typing event');
   if (!socketRef || !socketRef.current) return;
 
   // emit typing event
