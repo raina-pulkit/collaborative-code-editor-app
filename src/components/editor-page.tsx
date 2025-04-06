@@ -188,8 +188,6 @@ const EditorPage = ({ room }: { room: Room }) => {
     userDetails?.name,
   ]);
 
-  console.log('connectedUsers: ', connectedUsers);
-
   return (
     <SidebarProvider
       style={{
@@ -201,7 +199,6 @@ const EditorPage = ({ room }: { room: Room }) => {
         roomId={id || ''}
         socketRef={socketRef}
         room={room}
-        language={language}
       />
       <SidebarTrigger
         className="cursor-pointer hover:scale-110 transition-all duration-300"
