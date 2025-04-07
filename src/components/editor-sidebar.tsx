@@ -279,7 +279,7 @@ const EditorSidebar = ({
   const navigate = useNavigate();
 
   const firstRender = useRef(true);
-  const { mutate: endRoom } = useEndRoom();
+  const { mutate: endRoom, isPending: isEndingRoom } = useEndRoom();
 
   const handleLeaveRoom = async (leaveAll: boolean) => {
     if (!leaveAll) {
@@ -343,8 +343,9 @@ const EditorSidebar = ({
               <Button
                 variant="destructive"
                 className="border-none p-2.5 rounded-2xl text-md font-bold cursor-pointer transition-all ease-in-out duration-300 bg-red-400 text-black hover:scale-105"
+                disabled={isEndingRoom}
               >
-                Leave Room
+                {isEndingRoom ? 'Leaving...' : 'Leave Room'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -382,8 +383,9 @@ const EditorSidebar = ({
               e.preventDefault();
               await handleLeaveRoom(false);
             }}
+            disabled={isEndingRoom}
           >
-            Leave Room
+            {isEndingRoom ? 'Leaving...' : 'Leave Room'}
           </Button>
         )}
       </SidebarContent>
