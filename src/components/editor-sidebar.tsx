@@ -1,3 +1,27 @@
+import { ACTIONS } from '@/constants/actions';
+import { ROUTES } from '@/constants/routes';
+import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/constants/sidebar-options';
+import { TYPING_DEBOUNCE } from '@/constants/utils';
+import { useUser } from '@/context/user-context';
+import { languageAtom, themeAtom } from '@/jotai/atoms';
+import { Room } from '@/types/room';
+import { Box } from '@mui/material';
+import axios from 'axios';
+import { useAtom } from 'jotai';
+import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Socket } from 'socket.io-client';
+import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Button } from './ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 import {
   Sidebar,
   SidebarContent,
@@ -9,29 +33,6 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from './ui/sidebar';
-import { Box } from '@mui/material';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { useAtom } from 'jotai';
-import { languageAtom, themeAtom } from '@/jotai/atoms';
-import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/constants/sidebar-options';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { Button } from './ui/button';
-import { toast } from 'sonner';
-import { Socket } from 'socket.io-client';
-import { ACTIONS } from '@/constants/actions';
-import { useUser } from '@/context/user-context';
-import { ROUTES } from '@/constants/routes';
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
-import { initSocket } from '@/utils/socket';
-import { TYPING_DEBOUNCE } from '@/constants/utils';
 
 const LogoComponent = () => (
   <SidebarGroup>
@@ -108,8 +109,76 @@ const CurrentlyConnectedUsers = ({
   </SidebarGroup>
 );
 
-const LanguageSelector = () => {
+const LanguageSelector = ({
+  room,
+  firstRender,
+}: {
+  room: Room;
+  firstRender: React.RefObject<boolean>;
+}) => {
   const [lang, setLang] = useAtom(languageAtom);
+  const { userDetails } = useUser();
+
+  useEffect(() => {
+    if (!firstRender.current) return;
+
+    firstRender.current = false;
+
+    setLang({
+      ...lang,
+      currValue: room.lastLanguage || lang.defaultValue,
+      currLabel:
+        LANGUAGE_OPTIONS.find(item => item.value === room.lastLanguage)
+          ?.label || lang.defaultLabel,
+    });
+  }, []);
+
+  const handleLanguageChange = async (
+    value: string,
+    roomId: string,
+    userId: string,
+  ) => {
+    if (userId !== room.ownerUuid) {
+      toast.error('You are not the owner of this room');
+      return;
+    }
+
+    // Update the language of the room in the database
+    try {
+      const response = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/v1/room/${roomId}`,
+        {
+          lastLanguage: value,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json',
+            'Allow-Control-Allow-Origin': '*',
+          },
+        },
+      );
+
+      if (response.status === 200) {
+        toast.success('Language updated successfully');
+
+        // Update global state only after successful API call
+        const newLabel =
+          LANGUAGE_OPTIONS.find(item => item.value === value)?.label ||
+          lang.defaultLabel;
+        setLang({
+          ...lang,
+          currValue: value,
+          currLabel: newLabel,
+        });
+      } else {
+        toast.error('Failed to update language');
+      }
+    } catch (error: any) {
+      toast.error('Failed to update language');
+      console.error(error);
+    }
+  };
 
   return (
     <SidebarGroup>
@@ -117,20 +186,17 @@ const LanguageSelector = () => {
       <SidebarGroupContent>
         <SidebarMenu>
           <Select
-            onValueChange={value => {
-              setLang({
-                ...lang,
-                currValue: value,
-                currLabel:
-                  LANGUAGE_OPTIONS.find(item => item.value === value)?.label ||
-                  lang.defaultValue,
-              });
+            value={lang.currValue || lang.defaultValue}
+            onValueChange={async value => {
+              await handleLanguageChange(value, room.id, userDetails?.id || '');
             }}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue
-                defaultValue={lang.defaultValue}
-                placeholder={lang.defaultLabel}
+                placeholder={
+                  LANGUAGE_OPTIONS.find(item => item.value === lang.currValue)
+                    ?.label || lang.defaultLabel
+                }
               />
             </SelectTrigger>
             <SelectContent>
@@ -156,20 +222,20 @@ const ThemeSelector = () => {
       <SidebarGroupContent>
         <SidebarMenu>
           <Select
+            value={theme.currValue || theme.defaultValue}
             onValueChange={value => {
               setTheme({
                 ...theme,
                 currValue: value,
                 currLabel:
-                  LANGUAGE_OPTIONS.find(item => item.value === value)?.label ||
-                  theme.defaultValue,
+                  THEME_OPTIONS.find(item => item.value === value)?.label ||
+                  theme.defaultLabel,
               });
             }}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue
-                defaultValue={theme.defaultValue}
-                placeholder={theme.defaultLabel}
+                placeholder={theme.currLabel || theme.defaultLabel}
               />
             </SelectTrigger>
             <SelectContent>
@@ -190,6 +256,7 @@ const EditorSidebar = ({
   connectedUsers,
   roomId,
   socketRef,
+  room,
 }: {
   connectedUsers: {
     userName: string;
@@ -198,38 +265,16 @@ const EditorSidebar = ({
   }[];
   roomId: string;
   socketRef: React.RefObject<Socket | null>;
+  room: Room;
 }) => {
   const { userDetails } = useUser();
   const navigate = useNavigate();
 
+  const firstRender = useRef(true);
+
   useEffect(() => {
     const init = async () => {
-      if (!socketRef?.current) {
-        socketRef.current = await initSocket();
-        socketRef.current.connect();
-
-        socketRef.current.on('connect', () => {
-          toast.success('Connected to the socket server', {
-            style: {
-              backgroundColor: 'green',
-              color: 'white',
-            },
-          });
-
-          // Only emit join after successful connection
-          socketRef.current?.emit(ACTIONS.JOIN, {
-            id: roomId,
-            userName:
-              userDetails?.name ||
-              userDetails?.githubUsername ||
-              'Unknown User',
-            userId: userDetails?.id,
-            avatarUrl: userDetails?.avatarUrl,
-          });
-        });
-      }
-
-      socketRef.current.on(
+      socketRef.current?.on(
         ACTIONS.SOMEONE_TYPING,
         ({ userName, userId }: { userName: string; userId: string }) => {
           if (userId !== userDetails?.id) {
@@ -263,7 +308,9 @@ const EditorSidebar = ({
 
         <SidebarSeparator />
 
-        <LanguageSelector />
+        {room && room.ownerUuid === userDetails?.id && (
+          <LanguageSelector room={room} firstRender={firstRender} />
+        )}
         <ThemeSelector />
 
         <SidebarSeparator />

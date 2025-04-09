@@ -1,6 +1,6 @@
 import { ROUTES } from '@/constants/routes';
 import { useError } from '@/context/error-context';
-import { useGetAccessToken } from '@/utils/use-get-access-token';
+import { useGetAccessToken } from '@/hooks/use-get-access-token';
 import { Box, Container } from '@mui/material';
 import { JSX, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -47,9 +47,13 @@ const AuthRedirectPage = (): JSX.Element => {
           padding: '2rem',
         }}
       >
-        <LoadingPage 
-          size={100} 
-          message={status === 'pending' || isFetching ? "Authorizing your access..." : "Redirecting..."} 
+        <LoadingPage
+          size={100}
+          message={
+            status === 'pending' || isFetching
+              ? 'Authorizing your access...'
+              : 'Redirecting...'
+          }
         />
       </Box>
     </Container>

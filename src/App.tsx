@@ -1,15 +1,15 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { JSX, Suspense, useEffect } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { UNAUTHORIZED_ERROR } from './constants/error';
 import { ROUTES } from './constants/routes';
+import { ErrorProvider, useError } from './context/error-context';
 import { UserProvider } from './context/user-context';
+import { useGetUserDetails } from './hooks/use-get-user-details';
 import { LoadingPage } from './pages/loading-page';
 import NotFound from './pages/not-found';
 import { allRoutes, authRoutes, RouteDetails } from './routes';
 import { queryClient } from './utils/tanstack-query-client';
-import { useGetUserDetails } from './utils/use-get-user-details';
-import { ErrorProvider, useError } from './context/error-context';
-import { UNAUTHORIZED_ERROR } from './constants/error';
 
 const AuthenticatedContainer = ({
   children,

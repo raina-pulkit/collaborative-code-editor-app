@@ -39,6 +39,7 @@ const HomePage = (): JSX.Element => {
           textAlign: 'center',
           padding: '2rem',
           color: 'white',
+          gap: '2rem',
         }}
       >
         {page === 'home' && (

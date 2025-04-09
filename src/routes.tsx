@@ -9,7 +9,8 @@ const CallbackPage = lazy(() => import('./pages/login-callback-page'));
 const AboutPage = lazy(() => import('./pages/about-page'));
 const ProfilePage = lazy(() => import('./pages/profile-page'));
 const ErrorPage = lazy(() => import('./pages/error-page'));
-const EditorPage = lazy(() => import('./pages/editor-page'));
+const EditorPageContainer = lazy(() => import('./pages/editor-page-container'));
+// const EditorPage = lazy(() => import('./pages/editor-page'));
 const DrawingCanvas = lazy(() => import('./pages/demo'));
 
 export interface RouteDetails {
@@ -59,7 +60,7 @@ export const homeRoutes: RouteDetails[] = [
   },
   {
     path: NESTED_ROUTES.EDITOR,
-    component: EditorPage,
+    component: EditorPageContainer,
     children: [],
   },
   {

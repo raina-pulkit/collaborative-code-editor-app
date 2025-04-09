@@ -1,5 +1,6 @@
+import { DEFAULT_LANGUAGE, DEFAULT_THEME } from '@/constants/sidebar-options';
 import { atom } from 'jotai';
-import { Setter, Getter } from 'jotai/vanilla';
+import { Getter, Setter } from 'jotai/vanilla';
 
 type SetSelf<Value> = (
   update: Value | ((prev: Value | undefined) => Value),
@@ -29,18 +30,18 @@ const localStorageEffect =
 
 export const languageAtom = atom({
   key: 'language',
-  defaultValue: 'javascript',
-  defaultLabel: 'JavaScript',
-  currValue: 'javascript',
-  currLabel: 'JavaScript',
+  defaultValue: DEFAULT_LANGUAGE.value,
+  defaultLabel: DEFAULT_LANGUAGE.label,
+  currValue: DEFAULT_LANGUAGE.value,
+  currLabel: DEFAULT_LANGUAGE.label,
   effects_UNSTABLE: [localStorageEffect('language')],
 });
 
 export const themeAtom = atom({
   key: 'theme',
-  defaultValue: 'monokai',
-  defaultLabel: 'monokai',
-  currValue: 'monokai',
-  currLabel: 'monokai',
+  defaultValue: DEFAULT_THEME.value,
+  defaultLabel: DEFAULT_THEME.label,
+  currValue: DEFAULT_THEME.value,
+  currLabel: DEFAULT_THEME.label,
   effects_UNSTABLE: [localStorageEffect('theme')],
 });
