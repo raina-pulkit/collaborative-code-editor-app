@@ -7,6 +7,7 @@ export const ROUTES = {
   PROFILE: ':id/profile',
   ERROR: '/error',
   EDITOR: '/editor',
+  DEMO: '/demo',
 };
 
 export const NESTED_ROUTES = {

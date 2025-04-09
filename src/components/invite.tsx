@@ -42,7 +42,7 @@ export default function InviteParticipants() {
   };
 
   const handleInvite = async () => {
-    if (interviewees.length === 0 || interviewers.length === 0) {
+    if (interviewees.length === 0) {
       toast.error('Please add at least one interviewee and interviewer.');
       return;
     }

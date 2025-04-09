@@ -1,5 +1,6 @@
 import { JSX, lazy, LazyExoticComponent } from 'react';
 import { NESTED_ROUTES, ROUTES } from './constants/routes';
+// import DrawingCanvas from './pages/demo';
 
 const LoginPage = lazy(() => import('./pages/login-page'));
 const NotFound = lazy(() => import('./pages/not-found'));
@@ -9,6 +10,7 @@ const AboutPage = lazy(() => import('./pages/about-page'));
 const ProfilePage = lazy(() => import('./pages/profile-page'));
 const ErrorPage = lazy(() => import('./pages/error-page'));
 const EditorPage = lazy(() => import('./pages/editor-page'));
+const DrawingCanvas = lazy(() => import('./pages/demo'));
 
 export interface RouteDetails {
   path: string;
@@ -58,6 +60,11 @@ export const homeRoutes: RouteDetails[] = [
   {
     path: NESTED_ROUTES.EDITOR,
     component: EditorPage,
+    children: [],
+  },
+  {
+    path: ROUTES.DEMO,
+    component: DrawingCanvas,
     children: [],
   },
 ];

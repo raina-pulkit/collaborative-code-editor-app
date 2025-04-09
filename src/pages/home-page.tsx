@@ -8,6 +8,7 @@ import { Box, Container, Typography } from '@mui/material';
 import { JSX, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoadingPage } from './loading-page';
+// import { DrawingCanvas } from './demo';
 
 const HomePage = (): JSX.Element => {
   const { userDetails, isLoading, error } = useUser();
