@@ -3,7 +3,9 @@ import InviteParticipants from '@/components/invite';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 type Question = {
   id: number;
@@ -19,14 +21,27 @@ export const QuestionSelector = () => {
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
   const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
 
-  const fetchQuestions = () => {
-    fetch('http://localhost:3030/questions')
-      .then(res => res.json())
-      .then(data => {
-        setQuestions(data);
-        setFilteredQuestions(data);
-      })
-      .catch(err => console.error('Error fetching questions:', err));
+  const fetchQuestions = async () => {
+    // fetch('http://localhost:3030/questions')
+    //   .then(res => res.json())
+    //   .then(data => {
+    //     setQuestions(data);
+    //     setFilteredQuestions(data);
+    //   })
+    //   .catch(err => console.error('Error fetching questions:', err));
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/questions`,
+      );
+      const data = response.data;
+      setQuestions(data);
+      setFilteredQuestions(data);
+    } catch (error: any) {
+      console.error('Error fetching questions:', error);
+      toast.error('Failed to fetch questions', {
+        description: error.message,
+      });
+    }
   };
 
   useEffect(() => {

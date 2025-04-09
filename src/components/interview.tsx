@@ -1,8 +1,8 @@
-import { QuestionSelector } from '@/components/select_questions';
 import { Button } from '@/components/ui/button';
 import { Card, CardFooter, CardHeader } from '@/components/ui/card';
 import { Box, Container } from '@mui/material';
 import { useState } from 'react';
+import { QuestionSelector } from './select_questions';
 
 export const InterviewComp = () => {
   // const { userDetails, isLoading, error } = useUser();
@@ -10,6 +10,9 @@ export const InterviewComp = () => {
 
   return (
     <Container className="bg-accent-foreground min-w-full min-h-screen !p-0 relative">
+      {/* <Box sx={{ position: 'sticky', top: 0 }}>
+          <Header imgSource={userDetails?.avatarUrl} />
+        </Box> */}
       <Box
         sx={{
           display: 'flex',
@@ -43,7 +46,7 @@ export const InterviewComp = () => {
             </CardFooter>
           </Card>
         )}
-        {page == 'interviewer' && <QuestionSelector />}
+        {page === 'interviewer' && <QuestionSelector />}
       </Box>
     </Container>
   );

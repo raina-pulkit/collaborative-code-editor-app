@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import axios from 'axios';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -48,13 +49,23 @@ export default function InviteParticipants() {
 
     try {
       setLoading(true);
-      const res = await fetch('/api/send-invites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ interviewees, interviewers }),
-      });
 
-      if (res.ok) {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/send-invite`,
+        {
+          interviewees,
+          interviewers,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      console.log('Sending payload:', { interviewees, interviewers });
+      console.log('Response:', res.data);
+
+      if (res.status === 200) {
         toast.success('Invitations sent successfully!');
         setInterviewees([]);
         setInterviewers([]);
