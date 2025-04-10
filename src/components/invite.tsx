@@ -19,6 +19,7 @@ export const InviteParticipants = () => {
   const [interviewers, setInterviewers] = useState<string[]>([]);
   const [inputInterviewee, setInputInterviewee] = useState('');
   const [inputInterviewer, setInputInterviewer] = useState('');
+  const [, setLoading] = useState(false);
   const navigate = useNavigate();
   const [isPrivate, _setIsPrivate] = useState<boolean>(false);
   const [isCreatingRoom, setIsCreatingRoom] = useState<boolean>(false);

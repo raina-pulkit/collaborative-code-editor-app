@@ -22,6 +22,7 @@ export const InviteDevelopers = () => {
   const { userDetails } = useUser();
   const navigate = useNavigate();
   const [invitedUsers, _setInvitedUsers] = useState<string[]>([]);
+  const [, setLoading] = useState(false);
 
   const handleAddDeveloper = (email: string) => {
     if (!email.trim() || developers.includes(email.trim())) return;
