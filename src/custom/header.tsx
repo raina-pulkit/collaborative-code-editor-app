@@ -12,6 +12,7 @@ import { AvatarImage } from '@radix-ui/react-avatar';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { LogOut, User } from 'lucide-react';
 import { JSX } from 'react';
+import { FaCodeBranch } from 'react-icons/fa6'; // ✅ Import from react-icons
 import { useNavigate } from 'react-router-dom';
 
 export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
@@ -23,23 +24,62 @@ export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: 'primary.main',
+        backgroundImage:
+          'linear-gradient(to right, rgb(28, 156, 253), #60d0ff)',
         color: 'white',
         borderRadius: '0 0 10px 10px',
-        padding: '1rem',
-        marginLeft: '1rem',
-        marginRight: '1rem',
+        padding: '0.75rem 1rem',
+        height: '60px',
+        position: 'relative',
       }}
     >
-      <Typography variant="h6" component="div">
-        Collaborative Code Editor
-      </Typography>
-      <Box>
+      <Box
+        sx={{
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+        }}
+      >
+        <FaCodeBranch
+          style={{
+            color: 'black',
+            fontSize: '1.8rem',
+            backgroundColor: 'transparent',
+          }}
+        />
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{
+            fontSize: '1.75rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase',
+            color: 'black',
+          }}
+        >
+          CodeFusion
+        </Typography>
+      </Box>
+
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          justifyContent: 'flex-end',
+          gap: '0.25rem',
+          marginLeft: 'auto',
+        }}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild className="cursor-pointer">
-            <Avatar>
-              <AvatarImage src={imgSource} />
-              <AvatarFallback>CN</AvatarFallback>
+            <Avatar className="w-8 h-8 border-2 border-white">
+              <AvatarImage src={imgSource} className="object-cover" />
+              <AvatarFallback className="text-xs">CN</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
@@ -62,7 +102,11 @@ export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Typography variant="body1" component="span">
+        <Typography
+          variant="body1"
+          component="span"
+          sx={{ color: '#494848', fontWeight: 500, fontSize: '0.8rem' }}
+        >
           About
         </Typography>
       </Box>

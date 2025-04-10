@@ -68,7 +68,16 @@ export const CreateQuestionModal: React.FC<CreateQuestionProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Create Question</Button>
+        {/* <Button >Create Question</Button> */}
+        <Button
+          variant="outline"
+          className="w-40 rounded-xl px-6 py-2 text-[black] text-lg transition transform hover:scale-105"
+          style={{
+            background: 'linear-gradient(to right, rgb(28, 156, 253), #60d0ff)',
+          }}
+        >
+          Create Question
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -102,7 +111,18 @@ export const CreateQuestionModal: React.FC<CreateQuestionProps> = ({
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleSubmit}>Submit</Button>
+          <div className="w-full flex justify-center">
+            <Button
+              onClick={handleSubmit}
+              className="w-60 rounded-xl px-6 py-2 text-[black] font-semibold text-lg transition transform hover:scale-105"
+              style={{
+                background:
+                  'linear-gradient(to right, rgb(28, 156, 253), #60d0ff)',
+              }}
+            >
+              Submit
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
