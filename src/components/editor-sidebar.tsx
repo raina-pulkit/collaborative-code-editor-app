@@ -49,72 +49,113 @@ const LogoComponent = () => (
   </SidebarGroup>
 );
 
+const getListOfConnectedUsers = (
+  connectedUsers: {
+    userName: string;
+    avatarUrl: string;
+    userId: string;
+  }[],
+  roomOwner: string,
+): {
+  userName: string;
+  avatarUrl: string;
+  userId: string;
+  isOwner: number;
+}[] => {
+  // if room owner is in the list of connected users, make him first in the list
+  const listOfConnectedUsers = connectedUsers.map(user => ({
+    ...user,
+    isOwner: +(user.userId === roomOwner),
+  }));
+
+  // sort the list of connected users by isOwner
+  listOfConnectedUsers.sort((a, b) => b.isOwner - a.isOwner);
+
+  return listOfConnectedUsers;
+};
+
 const CurrentlyConnectedUsers = ({
   connectedUsers,
+  roomOwner,
 }: {
   connectedUsers: {
     userName: string;
     avatarUrl: string;
     userId: string;
   }[];
-}) => (
-  <SidebarGroup>
-    <SidebarGroupLabel>Connected</SidebarGroupLabel>
-    <SidebarGroupContent>
-      <SidebarMenu>
-        {connectedUsers.slice(0, 5).map((item, index) => (
-          <SidebarMenuItem key={index}>
-            <SidebarMenuButton asChild>
-              <Box>
-                <Avatar>
-                  <AvatarImage src={item.avatarUrl} />
-                  <AvatarFallback>{item.userName?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span>{item.userName}</span>
-              </Box>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
-        {connectedUsers.length > 5 && (
-          <Popover>
-            <PopoverTrigger className="cursor-pointer">
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <span>+{connectedUsers.length - 5} more</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </PopoverTrigger>
+  roomOwner: string;
+}) => {
+  const currentConnectedUsers = getListOfConnectedUsers(
+    connectedUsers,
+    roomOwner,
+  );
 
-            <PopoverContent className="min-w-16 w-[--radix-popover-trigger-width] list-none p-2">
-              {connectedUsers.slice(5).map((item, index) => (
-                <SidebarMenuItem key={index} className="list-none">
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>Connected</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {currentConnectedUsers.map((item, index) => (
+            <SidebarMenuItem key={index}>
+              <SidebarMenuButton asChild>
+                <Box>
+                  <Avatar>
+                    <AvatarImage src={item.avatarUrl} />
+                    <AvatarFallback>{item.userName?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <span>
+                    {item.userName}
+                    {item.isOwner ? ' (Owner)' : ''}
+                  </span>
+                </Box>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+          {currentConnectedUsers.length > 5 && (
+            <Popover>
+              <PopoverTrigger className="cursor-pointer">
+                <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <Box>
-                      <Avatar>
-                        <AvatarImage src={item.avatarUrl} />
-                        <AvatarFallback>
-                          {item.userName?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{item.userName}</span>
-                    </Box>
+                    <span>+{connectedUsers.length - 5} more</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
-            </PopoverContent>
-          </Popover>
-        )}
-      </SidebarMenu>
-    </SidebarGroupContent>
-  </SidebarGroup>
-);
+              </PopoverTrigger>
+
+              <PopoverContent className="min-w-16 w-[--radix-popover-trigger-width] list-none p-2">
+                {connectedUsers.slice(5).map((item, index) => (
+                  <SidebarMenuItem key={index} className="list-none">
+                    <SidebarMenuButton asChild>
+                      <Box>
+                        <Avatar>
+                          <AvatarImage src={item.avatarUrl} />
+                          <AvatarFallback>
+                            {item.userName?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{item.userName}</span>
+                      </Box>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </PopoverContent>
+            </Popover>
+          )}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+};
 
 const LanguageSelector = ({
   room,
   firstRender,
+  socketRef,
+  owner,
 }: {
   room: Room;
   firstRender: React.RefObject<boolean>;
+  socketRef: React.RefObject<Socket | null>;
+  owner: boolean;
 }) => {
   const [lang, setLang] = useAtom(languageAtom);
   const { userDetails } = useUser();
@@ -131,7 +172,11 @@ const LanguageSelector = ({
         LANGUAGE_OPTIONS.find(item => item.value === room.lastLanguage)
           ?.label || lang.defaultLabel,
     });
-  }, []);
+
+    return () => {
+      socketRef.current?.removeListener(ACTIONS.LANGUAGE_CHANGE_HANDLE);
+    };
+  }, [lang]);
 
   const handleLanguageChange = async (
     value: string,
@@ -178,20 +223,32 @@ const LanguageSelector = ({
       toast.error('Failed to update language');
       console.error(error);
     }
+
+    socketRef.current?.emit(ACTIONS.LANGUAGE_CHANGE, {
+      id: roomId,
+      language: value,
+    });
   };
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Select Language:</SidebarGroupLabel>
+      <SidebarGroupLabel>
+        {owner ? 'Select Language:' : 'Current Language:'}
+      </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           <Select
             value={lang.currValue || lang.defaultValue}
             onValueChange={async value => {
-              await handleLanguageChange(value, room.id, userDetails?.id || '');
+              if (owner)
+                await handleLanguageChange(
+                  value,
+                  room.id,
+                  userDetails?.id || '',
+                );
             }}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px]" disabled={!owner}>
               <SelectValue
                 placeholder={
                   LANGUAGE_OPTIONS.find(item => item.value === lang.currValue)
@@ -252,7 +309,7 @@ const ThemeSelector = () => {
   );
 };
 
-const EditorSidebar = ({
+export const EditorSidebar = ({
   connectedUsers,
   roomId,
   socketRef,
@@ -304,13 +361,20 @@ const EditorSidebar = ({
 
         <SidebarSeparator />
 
-        <CurrentlyConnectedUsers connectedUsers={connectedUsers} />
+        <CurrentlyConnectedUsers
+          connectedUsers={connectedUsers}
+          roomOwner={room.ownerUuid}
+        />
 
         <SidebarSeparator />
 
-        {room && room.ownerUuid === userDetails?.id && (
-          <LanguageSelector room={room} firstRender={firstRender} />
-        )}
+        <LanguageSelector
+          room={room}
+          firstRender={firstRender}
+          socketRef={socketRef}
+          owner={room && room.ownerUuid === userDetails?.id}
+        />
+
         <ThemeSelector />
 
         <SidebarSeparator />
@@ -354,5 +418,3 @@ const EditorSidebar = ({
     </Sidebar>
   );
 };
-
-export default EditorSidebar;

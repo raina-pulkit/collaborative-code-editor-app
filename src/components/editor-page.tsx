@@ -1,7 +1,8 @@
-import EditorSidebar from '@/components/editor-sidebar';
+import { EditorSidebar } from '@/components/editor-sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ACTIONS } from '@/constants/actions';
 import { ROUTES } from '@/constants/routes';
+import { LANGUAGE_OPTIONS } from '@/constants/sidebar-options';
 import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
@@ -9,7 +10,7 @@ import { Room } from '@/types/room';
 import { handleEmitTyping } from '@/utils/emit-typing';
 import { disconnectSocket, initSocket } from '@/utils/socket';
 import { Editor } from '@monaco-editor/react';
-import { useAtomValue } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
@@ -28,7 +29,7 @@ const EditorPage = ({ room }: { room: Room }) => {
   const navigate = useNavigate();
   const lastTypingRef = useRef<Date | null>(null);
   const firstTime = useRef(true);
-  const language = useAtomValue(languageAtom);
+  const [language, setLanguage] = useAtom(languageAtom);
   const theme = useAtomValue(themeAtom);
 
   useEffect(() => {
@@ -120,24 +121,39 @@ const EditorPage = ({ room }: { room: Room }) => {
           // Check if someone left the room
           socket.on(ACTIONS.DISCONNECTED, ({ userName, userId }) => {
             if (!mounted) return;
-            if (userDetails?.id !== userId) {
-              toast.success(`${userName} left the room`, {
-                position: 'top-center',
-                style: {
-                  backgroundColor: 'orangered',
-                  color: 'white',
-                },
-              });
-            }
 
-            setConnectedUsers(prev =>
-              prev.filter(user => user.userId !== userId),
-            );
+            setConnectedUsers(prev => {
+              // Only show toast if user was in the list
+              const userWasConnected = prev.some(
+                user => user.userId === userId,
+              );
+              if (userWasConnected) {
+                toast.success(`${userName} left the room`, {
+                  position: 'top-center',
+                  style: {
+                    backgroundColor: 'orangered',
+                    color: 'white',
+                  },
+                });
+              }
+
+              return prev.filter(user => user.userId !== userId);
+            });
           });
 
           socket.on(ACTIONS.SYNC_CODE, ({ code }) => {
             codeRef.current = code;
             setEditorContent(code);
+          });
+
+          socket.on(ACTIONS.LANGUAGE_CHANGE_HANDLE, ({ language }) => {
+            setLanguage({
+              ...language,
+              currValue: language,
+              currLabel:
+                LANGUAGE_OPTIONS.find(item => item.value === language)?.label ||
+                language.defaultLabel,
+            });
           });
         }
       } catch (err) {
@@ -148,6 +164,14 @@ const EditorPage = ({ room }: { room: Room }) => {
     };
 
     init();
+
+    setLanguage({
+      ...language,
+      currValue: room.lastLanguage,
+      currLabel:
+        LANGUAGE_OPTIONS.find(item => item.value === room.lastLanguage)
+          ?.label || language.defaultLabel,
+    });
 
     return () => {
       mounted = false;
@@ -163,6 +187,8 @@ const EditorPage = ({ room }: { room: Room }) => {
     userDetails?.githubUsername,
     userDetails?.id,
     userDetails?.name,
+    navigate,
+    room.lastLanguage,
   ]);
 
   return (

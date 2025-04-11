@@ -15,6 +15,7 @@ export const initSocket = async (): Promise<Socket> => {
     timeout: 20000,
     transports: ['websocket', 'polling'],
     autoConnect: false,
+    reconnection: true,
   };
 
   socket = io(import.meta.env.VITE_API_URL, options);
