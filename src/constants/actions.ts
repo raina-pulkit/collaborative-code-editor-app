@@ -7,4 +7,7 @@ export const ACTIONS = {
   LEAVE: 'leave',
   TYPING: 'typing',
   SOMEONE_TYPING: 'someone-typing',
+  ERROR: 'error',
+  LANGUAGE_CHANGE: 'language-change',
+  LANGUAGE_CHANGE_HANDLE: 'language-change-handle',
 };
