@@ -1,5 +1,6 @@
 import { JSX, lazy, LazyExoticComponent } from 'react';
 import { NESTED_ROUTES, ROUTES } from './constants/routes';
+// import DrawingCanvas from './pages/demo';
 
 const LoginPage = lazy(() => import('./pages/login-page'));
 const NotFound = lazy(() => import('./pages/not-found'));
@@ -9,6 +10,12 @@ const AboutPage = lazy(() => import('./pages/about-page'));
 const ProfilePage = lazy(() => import('./pages/profile-page'));
 const ErrorPage = lazy(() => import('./pages/error-page'));
 const EditorPageContainer = lazy(() => import('./pages/editor-page-container'));
+// const EditorPage = lazy(() => import('./pages/editor-page'));
+const InterviewPage = lazy(() => import('./pages/interview-page'));
+const SelectQuestionPage = lazy(() => import('./pages/select-question-page'));
+const InvitePage = lazy(() => import('./pages/invite-page'));
+const RoomCodePage = lazy(() => import('./pages/room-code'));
+const DeveloperPage = lazy(() => import('./pages/developer-page'));
 
 export interface RouteDetails {
   path: string;
@@ -58,6 +65,31 @@ export const homeRoutes: RouteDetails[] = [
   {
     path: NESTED_ROUTES.EDITOR,
     component: EditorPageContainer,
+    children: [],
+  },
+  {
+    path: ROUTES.INTERVIEW,
+    component: InterviewPage,
+    children: [],
+  },
+  {
+    path: ROUTES.SELECTQUESTION,
+    component: SelectQuestionPage,
+    children: [],
+  },
+  {
+    path: ROUTES.INVITE,
+    component: InvitePage,
+    children: [],
+  },
+  {
+    path: ROUTES.ROOMCODE,
+    component: RoomCodePage,
+    children: [],
+  },
+  {
+    path: ROUTES.DEVELOPER,
+    component: DeveloperPage,
     children: [],
   },
 ];
