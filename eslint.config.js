@@ -70,6 +70,7 @@ export default [
           semi: true,
           arrowParens: 'avoid',
           bracketSpacing: true,
+          endOfLine: 'auto',
         },
       ],
       'react/jsx-uses-react': 'error',
