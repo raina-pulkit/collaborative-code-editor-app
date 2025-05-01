@@ -4,7 +4,9 @@ import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/constants/sidebar-options';
 import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
+import { User } from '@/types/member-profile/user';
 import { Room } from '@/types/room';
+import { disconnectSocket } from '@/utils/socket';
 import { Box } from '@mui/material';
 import axios from 'axios';
 import { useAtom } from 'jotai';
@@ -22,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { Separator } from './ui/separator';
 import {
   Sidebar,
   SidebarContent,
@@ -309,6 +312,89 @@ const ThemeSelector = () => {
   );
 };
 
+const LeaveButton = ({
+  socketRef,
+  roomId,
+  userDetails,
+  message,
+  endAll,
+}: {
+  socketRef: React.RefObject<Socket | null>;
+  roomId: string;
+  userDetails: User | undefined;
+  message?: string;
+  endAll?: boolean;
+}) => {
+  const navigate = useNavigate();
+  return (
+    <Button
+      className="border-none p-2.5 rounded-2xl text-md font-bold cursor-pointer transition-all ease-in-out duration-300 bg-red-400 text-black hover:text-white"
+      onClick={async e => {
+        if (endAll === undefined) return;
+
+        e.preventDefault();
+        if (endAll) {
+          socketRef.current?.emit(ACTIONS.END_ROOM, {
+            id: roomId,
+            userName:
+              userDetails?.name ||
+              userDetails?.githubUsername ||
+              'Unknown User',
+            userId: userDetails?.id,
+          });
+          toast.success('You have ended the room');
+
+          disconnectSocket();
+        } else {
+          socketRef.current?.emit(ACTIONS.LEAVE, {
+            id: roomId,
+            userName:
+              userDetails?.name ||
+              userDetails?.githubUsername ||
+              'Unknown User',
+            userId: userDetails?.id,
+          });
+          toast.success('You have left the room');
+        }
+
+        navigate(ROUTES.HOME);
+      }}
+    >
+      {message || 'Leave Room'}
+    </Button>
+  );
+};
+
+const PopoverLeaveButton = ({
+  socketRef,
+  roomId,
+  userDetails,
+}: {
+  socketRef: React.RefObject<Socket | null>;
+  roomId: string;
+  userDetails: User | undefined;
+}) => (
+  <div className="flex flex-col gap-2 border-4 border-black py-5 px-2 rounded-lg">
+    <LeaveButton
+      socketRef={socketRef}
+      userDetails={userDetails}
+      roomId={`${roomId}`}
+      endAll={true}
+      message="End Room for all"
+    />
+
+    <Separator className="w-5 bg-black" />
+
+    <LeaveButton
+      socketRef={socketRef}
+      userDetails={userDetails}
+      roomId={`${roomId}`}
+      endAll={false}
+      message="Leave Room"
+    />
+  </div>
+);
+
 export const EditorSidebar = ({
   connectedUsers,
   roomId,
@@ -325,7 +411,6 @@ export const EditorSidebar = ({
   room: Room;
 }) => {
   const { userDetails } = useUser();
-  const navigate = useNavigate();
 
   const firstRender = useRef(true);
 
@@ -396,24 +481,27 @@ export const EditorSidebar = ({
 
         <SidebarSeparator />
 
-        <Button
-          className="border-none p-2.5 rounded-2xl text-md font-bold cursor-pointer transition-all ease-in-out duration-300 bg-red-400 text-black hover:text-white"
-          onClick={async e => {
-            e.preventDefault();
-            socketRef.current?.emit(ACTIONS.LEAVE, {
-              id: roomId,
-              userName:
-                userDetails?.name ||
-                userDetails?.githubUsername ||
-                'Unknown User',
-              userId: userDetails?.id,
-            });
-            toast.success('You have left the room');
-            navigate(ROUTES.HOME);
-          }}
-        >
-          Leave Room
-        </Button>
+        {room && room.ownerUuid === userDetails?.id ? (
+          <Popover>
+            <PopoverTrigger className="border-none p-2.5 rounded-2xl text-md font-bold cursor-pointer transition-all ease-in-out duration-300 bg-red-400 text-black hover:text-white">
+              Leave Room
+            </PopoverTrigger>
+            <PopoverContent>
+              <PopoverLeaveButton
+                socketRef={socketRef}
+                userDetails={userDetails}
+                roomId={`${roomId}`}
+              />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <LeaveButton
+            socketRef={socketRef}
+            userDetails={userDetails}
+            roomId={`${roomId}`}
+            endAll={false}
+          />
+        )}
       </SidebarContent>
     </Sidebar>
   );
