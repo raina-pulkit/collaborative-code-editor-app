@@ -155,6 +155,30 @@ const EditorPage = ({ room }: { room: Room }) => {
                 language.defaultLabel,
             });
           });
+
+          socket.on(ACTIONS.END_ROOM, ({ message }) => {
+            if (!mounted) return;
+            toast.error(message, {
+              description: 'Redirecting to home page',
+              style: {
+                backgroundColor: 'red',
+                color: 'white',
+              },
+            });
+
+            setTimeout(() => {
+              socketRef.current?.emit(ACTIONS.LEAVE, {
+                id,
+                userName:
+                  userDetails?.name ||
+                  userDetails?.githubUsername ||
+                  'Unknown User',
+                userId: userDetails?.id,
+              });
+
+              navigate(ROUTES.HOME);
+            }, 2000);
+          });
         }
       } catch (err) {
         if (!mounted) return;

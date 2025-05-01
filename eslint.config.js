@@ -71,6 +71,7 @@ export default [
           arrowParens: 'avoid',
           bracketSpacing: true,
           endOfLine: 'auto',
+          endOfLine: 'auto'
         },
       ],
       'react/jsx-uses-react': 'error',
