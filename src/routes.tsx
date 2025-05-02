@@ -9,6 +9,7 @@ const AboutPage = lazy(() => import('./pages/about-page'));
 const ProfilePage = lazy(() => import('./pages/profile-page'));
 const ErrorPage = lazy(() => import('./pages/error-page'));
 const EditorPageContainer = lazy(() => import('./pages/editor-page-container'));
+const DeveloperPage = lazy(() => import('./pages/developer-page'));
 
 export interface RouteDetails {
   path: string;
@@ -58,6 +59,11 @@ export const homeRoutes: RouteDetails[] = [
   {
     path: NESTED_ROUTES.EDITOR,
     component: EditorPageContainer,
+    children: [],
+  },
+  {
+    path: ROUTES.DEVELOPER,
+    component: DeveloperPage,
     children: [],
   },
 ];
