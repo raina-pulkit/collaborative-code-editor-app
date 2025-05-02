@@ -5,8 +5,9 @@ import { Label } from '@/components/ui/label';
 import { ROUTES } from '@/constants/routes';
 import { DEFAULT_LANGUAGE } from '@/constants/sidebar-options';
 import { useUser } from '@/context/user-context';
+import { useCreateRoom } from '@/hooks/database-query/use-create-room';
+import { useSendEmails } from '@/hooks/use-send-emails';
 import { Room } from '@/types/room';
-import axios, { AxiosResponse } from 'axios';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -25,103 +26,82 @@ export const InviteDevelopers = () => {
   const [developers, setDevelopers] = useState<string[]>([]);
   const [inputDeveloper, setInputDeveloper] = useState('');
   const [isPrivate, setIsPrivate] = useState<boolean | undefined>(undefined);
-  const [isCreatingRoom, setIsCreatingRoom] = useState<boolean>(false);
   const { userDetails } = useUser();
+  const { mutate: createRoomMutation, isPending, isError } = useCreateRoom();
+  const { mutate: sendEmailsMutation } = useSendEmails();
   const navigate = useNavigate();
-  const [invitedUsers, _setInvitedUsers] = useState<string[]>([]);
-  const [, setLoading] = useState(false);
 
-  const handleAddDeveloper = (email: string) => {
-    if (!email.trim() || developers.includes(email.trim())) return;
-    setDevelopers(prev => [...prev, email.trim()]);
-    setInputDeveloper('');
-  };
-
-  const removeDeveloper = (email: string) => {
-    setDevelopers(prev => prev.filter(e => e !== email));
+  const inviteUsers = (email: string, remove: boolean) => {
+    if (remove) {
+      setDevelopers(prev => prev.filter(e => e !== email));
+    } else {
+      if (developers.includes(email)) return;
+      setDevelopers(prev => [...prev, email]);
+      setInputDeveloper('');
+    }
   };
 
   const handleCreateRoomAndInvite = async () => {
-    if (developers.length === 0) {
-      toast.error('Please invite at least one developer.');
-      return;
-    }
-
     if (isPrivate === undefined) {
       toast.error('Please select a room type.');
       return;
     }
 
-    setLoading(true);
-    setIsCreatingRoom(true);
-
     try {
+      if (userDetails?.id === undefined) return;
+
       // Create Room
-      const roomResponse: AxiosResponse<Room> = await axios.post(
-        `${import.meta.env.VITE_API_URL}/v1/room`,
+      createRoomMutation(
         {
-          ownerUuid: userDetails?.id,
+          ownerUuid: userDetails.id,
           isPrivate,
-          invitedUsers,
+          invitedUsers: developers,
           lastLanguage: DEFAULT_LANGUAGE.value,
         },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+          onSuccess: (room: Room) => {
+            const roomId = room.id;
+
+            sendEmailsMutation(
+              {
+                intervieweeEmails: developers,
+                interviewerEmails: [],
+                roomId,
+              },
+              {
+                onSuccess: (rejectedEmails: {
+                  message: string;
+                  failedEmails?: string[];
+                }) => {
+                  if (rejectedEmails.failedEmails?.length) {
+                    toast.error('Some emails failed to send.', {
+                      description: `Failed to send invites to: ${rejectedEmails.failedEmails.join(', ')}`,
+                    });
+                  } else {
+                    toast.success('Room created and invitations sent!');
+                    navigate(`${ROUTES.EDITOR}/${roomId}`);
+                  }
+                },
+                onError: (error: Error) => {
+                  toast.error('Error sending email invites', {
+                    description: error.message,
+                  });
+                },
+              },
+            );
+          },
+          onError: (error: Error) => {
+            toast.error('Error creating room', {
+              description: error.message,
+            });
           },
         },
       );
-      console.log('Room response:', roomResponse);
-
-      if (roomResponse.status === 401) {
-        localStorage.removeItem('accessToken');
-        navigate(ROUTES.LOGIN);
-        return;
-      }
-
-      if (roomResponse.status !== 201) {
-        toast.error('Failed to create room', {
-          description: roomResponse.statusText,
-        });
-        return;
-      }
-
-      const roomId = roomResponse.data.id;
-
-      // Send Invites
-      const inviteResponse = await axios.post(
-        `${import.meta.env.VITE_API_URL}/send-invite`,
-        {
-          interviewees: developers,
-          interviewers: [],
-          roomId,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          },
-        },
-      );
-
-      if (inviteResponse.status === 201) {
-        toast.success('Room created and invitations sent!');
-        setDevelopers([]);
-        navigate(`${ROUTES.EDITOR}/${roomId}`);
-      } else {
-        toast.error('Room created but failed to send invites.');
-      }
     } catch (error: any) {
       console.error(error);
       toast.error('Something went wrong.', {
         description: error.message,
       });
-    } finally {
-      setLoading(false);
-      setIsCreatingRoom(false);
     }
   };
 
@@ -138,30 +118,41 @@ export const InviteDevelopers = () => {
               <Label className="text-lg font-semibold mb-2 block">
                 Developer Emails
               </Label>
-              <Input
-                className="mt-2 bg-[#1e272e] border-gray-600 text-white"
-                placeholder="Type email and press Enter"
-                value={inputDeveloper}
-                onChange={e => setInputDeveloper(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddDeveloper(inputDeveloper);
-                  }
+              <form
+                className="flex items-center gap-5"
+                onSubmit={e => {
+                  e.preventDefault();
+                  inviteUsers(inputDeveloper, false);
                 }}
-              />
+              >
+                <Input
+                  className="bg-[#1e272e] border-gray-600 text-white"
+                  placeholder="Type email and press Enter"
+                  value={inputDeveloper}
+                  type="email"
+                  onChange={e => setInputDeveloper(e.target.value)}
+                />
+                <Button
+                  variant={'outline'}
+                  className="text-black hover:text-white hover:bg-black active:scale-105 transition-all duration-200"
+                  disabled={!inputDeveloper.trim()}
+                  type="submit"
+                >
+                  Add Email
+                </Button>
+              </form>
               <div className="flex flex-wrap gap-2 mt-3">
-                {developers.map(email => (
+                {developers.map((email, inx) => (
                   <span
-                    key={email}
-                    className="bg-purple-200 text-purple-900 px-3 py-1 rounded-full flex items-center gap-1 text-sm"
+                    key={inx}
+                    className="bg-purple-200 text-purple-900 px-3 py-1 rounded-full flex justify-center items-center gap-1 text-sm"
                   >
-                    {email}
+                    <p className="text-center">{email}</p>
                     <button
-                      onClick={() => removeDeveloper(email)}
-                      className="ml-1"
+                      onClick={() => inviteUsers(email, true)}
+                      className="flex items-center justify-center"
                     >
-                      <X className="w-4 h-4" />
+                      <X />
                     </button>
                   </span>
                 ))}
@@ -169,21 +160,21 @@ export const InviteDevelopers = () => {
             </div>
           </div>
 
-          <div className="flex justify-center mt-8 gap-2">
+          <div className="flex justify-center gap-2">
             <Button
               onClick={handleCreateRoomAndInvite}
-              disabled={isCreatingRoom}
-              className="w-60 rounded-xl px-6 py-3 text-lg font-semibold text-[black] transition transform hover:scale-105 cursor-pointer"
+              disabled={isPending && !isError}
+              className="rounded-xl px-6 py-3 text-lg font-semibold text-[black] transition transform hover:scale-105 cursor-pointer flex-3"
               style={{
                 background:
                   'linear-gradient(to right, rgb(28, 156, 253), #60d0ff)',
               }}
             >
-              {isCreatingRoom ? 'Creating...' : 'Invite & Create Room'}
+              {isPending && !isError ? 'Creating...' : 'Invite & Create Room'}
             </Button>
 
             <Select onValueChange={value => setIsPrivate(value === 'private')}>
-              <SelectTrigger>
+              <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Select Room Type" />
               </SelectTrigger>
               <SelectContent>
