@@ -1,9 +1,9 @@
+import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardFooter, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ROUTES } from '@/constants/routes';
 import { useUser } from '@/context/user-context';
-import { Header } from '@/custom/header';
 import { Box, Container, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
 import { JSX, useEffect, useState } from 'react';
@@ -53,7 +53,10 @@ const HomePage = (): JSX.Element => {
   return (
     <Container className="bg-accent-foreground min-w-full min-h-screen !p-0 relative">
       <Box sx={{ position: 'sticky', top: 0 }}>
-        <Header imgSource={userDetails?.avatarUrl} />
+        <Header
+          imgSource={userDetails?.avatarUrl}
+          githubId={userDetails?.githubId}
+        />
       </Box>
       <Box
         sx={{
