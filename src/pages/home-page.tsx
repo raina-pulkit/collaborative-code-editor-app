@@ -162,7 +162,7 @@ const HomePage = (): JSX.Element => {
                   }}
                 >
                   <Input
-                    className="w-full flex-4 rounded-xl px-2 py-2 text-lg font-semibold text-[black]"
+                    className="w-full flex-4 rounded-xl px-2 py-2 text-xs font-semibold text-[black]"
                     style={{
                       background:
                         'linear-gradient(to right, rgb(28, 156, 253), #60d0ff)',
