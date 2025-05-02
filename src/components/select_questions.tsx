@@ -3,9 +3,9 @@ import { InviteParticipants } from '@/components/invite';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { useGetQuestions } from '@/hooks/database-query/use-get-questions';
+import { LoadingPage } from '@/pages/loading-page';
+import { useState } from 'react';
 
 type Question = {
   id: number;
@@ -17,48 +17,14 @@ type Question = {
 export const QuestionSelector = () => {
   const [step, setStep] = useState<'questions' | 'invite'>('questions');
   const [search, setSearch] = useState('');
-  const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
-  const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
-
-  const fetchQuestions = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/questions`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          },
-        },
-      );
-      const data = response.data;
-      setQuestions(data);
-      setFilteredQuestions(data);
-    } catch (error: any) {
-      console.error('Error fetching questions:', error);
-      toast.error('Failed to fetch questions', {
-        description: error.message,
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchQuestions();
-  }, []);
-
-  const handleSearch = (value: string) => {
-    setSearch(value);
-    const lower = value.toLowerCase();
-    setFilteredQuestions(
-      questions.filter(q => q.title.toLowerCase().includes(lower)),
-    );
-  };
+  const { data: questions, error, isLoading, refetch } = useGetQuestions();
 
   const handleSelect = (question: Question) => {
     if (!selectedQuestions.find(q => q.id === question.id)) {
       setSelectedQuestions([...selectedQuestions, question]);
+    } else {
+      setSelectedQuestions(selectedQuestions.filter(q => q.id !== question.id));
     }
   };
 
@@ -68,6 +34,14 @@ export const QuestionSelector = () => {
 
   if (step === 'invite') {
     return <InviteParticipants />;
+  }
+
+  if (isLoading) {
+    return <LoadingPage message="Loading questions..." />;
+  }
+
+  if (error) {
+    return <div>Error fetching questions: {error?.message}</div>;
   }
 
   return (
@@ -82,34 +56,46 @@ export const QuestionSelector = () => {
               <Input
                 placeholder="Search..."
                 value={search}
-                onChange={e => handleSearch(e.target.value)}
+                onChange={e => setSearch(e.target.value)}
                 className="w-full rounded-xl px-4 py-2 text-white"
               />
-              <CreateQuestionModal onSuccess={fetchQuestions} />
+              <CreateQuestionModal onSuccess={refetch} />
             </div>
 
             <div className="space-y-2 overflow-y-auto flex-grow pr-1">
-              {filteredQuestions.map(q => (
-                <Button
-                  key={q.id}
-                  variant="secondary"
-                  className="border border-gray-600 w-full justify-between items-center rounded-xl px-4 py-2 text-white bg-[#4b5563] hover:bg-[#6b7280] hover:scale-105 transition"
-                  onClick={() => handleSelect(q)}
-                >
-                  <span className="text-left">{q.title}</span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      q.difficulty === 'easy'
-                        ? 'bg-green-100 text-green-700'
-                        : q.difficulty === 'medium'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-red-100 text-red-700'
-                    }`}
-                  >
-                    {q.difficulty}
-                  </span>
-                </Button>
-              ))}
+              {questions && questions.length > 0 ? (
+                questions.map(
+                  q =>
+                    (q.title.toLowerCase().includes(search.toLowerCase()) ||
+                      q.description
+                        .toLowerCase()
+                        .includes(search.toLowerCase())) && (
+                      <Button
+                        key={q.id}
+                        variant="secondary"
+                        className="border border-gray-600 w-full justify-between items-center rounded-xl px-4 py-2 text-white bg-[#4b5563] hover:bg-[#6b7280] hover:scale-105 transition"
+                        onClick={() => handleSelect(q)}
+                      >
+                        <span className="text-left">{q.title}</span>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full ${
+                            q.difficulty === 'easy'
+                              ? 'bg-green-100 text-green-700'
+                              : q.difficulty === 'medium'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          {q.difficulty}
+                        </span>
+                      </Button>
+                    ),
+                )
+              ) : (
+                <div className="text-center text-gray-400">
+                  No questions available.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -121,9 +107,10 @@ export const QuestionSelector = () => {
           <CardContent className="flex flex-col flex-grow justify-between">
             <div className="space-y-2 overflow-y-auto">
               {selectedQuestions.map(q => (
-                <div
+                <Button
                   key={q.id}
                   className="border border-gray-600 rounded-xl px-4 py-2 flex justify-between items-center bg-[#4b5563]"
+                  onClick={() => handleSelect(q)}
                 >
                   <span>{q.title}</span>
                   <span
@@ -137,7 +124,7 @@ export const QuestionSelector = () => {
                   >
                     {q.difficulty}
                   </span>
-                </div>
+                </Button>
               ))}
             </div>
             <Button

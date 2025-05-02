@@ -10,7 +10,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useAddQuestion } from '@/hooks/database-query/use-add-question';
+import { DifficultyEnum } from '@/types/questions';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 type CreateQuestionProps = {
   onSuccess: () => void;
@@ -19,56 +22,43 @@ type CreateQuestionProps = {
 export const CreateQuestionModal: React.FC<CreateQuestionProps> = ({
   onSuccess,
 }) => {
-  const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(
-    'easy',
+  const [difficulty, setDifficulty] = useState<DifficultyEnum>(
+    DifficultyEnum.EASY,
   );
+  const [isDialogOpen, setDialogOpen] = useState(false);
+  const { isPending, mutate: addQuestion } = useAddQuestion();
 
   const handleSubmit = async () => {
     try {
-      console.log(
-        JSON.stringify({
-          title,
-          description,
-          difficulty,
-        }),
-      );
-
-      const response = await fetch(`${process.env.VITE_API_URL}/questions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      addQuestion(
+        { title, description, difficulty },
+        {
+          onSuccess: () => {
+            toast.success('Question created successfully!');
+            onSuccess();
+            setTitle('');
+            setDescription('');
+            setDifficulty(DifficultyEnum.EASY);
+            setDialogOpen(false);
+          },
+          onError: error => {
+            toast.error('Error creating question', {
+              description: error?.message,
+              duration: 3000,
+            });
+          },
         },
-        body: JSON.stringify({
-          title,
-          description,
-          difficulty,
-          isCustom: true,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error:', errorData);
-        alert(`Error: ${errorData.message}`);
-        return;
-      }
-
-      onSuccess();
-      setOpen(false);
+      );
     } catch (error) {
       console.error('Error creating question:', error);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {/* <Button >Create Question</Button> */}
+    <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+      <DialogTrigger asChild disabled={isPending}>
         <Button
           variant="outline"
           className="w-40 rounded-xl px-6 py-2 text-[black] text-lg transition transform hover:scale-105"
@@ -100,9 +90,7 @@ export const CreateQuestionModal: React.FC<CreateQuestionProps> = ({
             <select
               className="border rounded px-2 py-1 w-full"
               value={difficulty}
-              onChange={e =>
-                setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')
-              }
+              onChange={e => setDifficulty(e.target.value as DifficultyEnum)}
             >
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
