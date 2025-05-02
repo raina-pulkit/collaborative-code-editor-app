@@ -76,7 +76,7 @@ export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
         }}
       >
         <DropdownMenu>
-          <DropdownMenuTrigger asChild className="select-none">
+          <DropdownMenuTrigger asChild className="cursor-pointer select-none">
             <Avatar className="w-8 h-8 border-2 border-white">
               <AvatarImage src={imgSource} className="object-cover" />
               <AvatarFallback className="text-xs">CN</AvatarFallback>
