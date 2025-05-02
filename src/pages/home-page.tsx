@@ -1,70 +1,37 @@
 import { Button } from '@/components/ui/button';
+import { Card, CardFooter, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { CREATE_ROOM } from '@/constants/button-texts';
 import { ROUTES } from '@/constants/routes';
-import { DEFAULT_LANGUAGE } from '@/constants/sidebar-options';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';
-import { Room } from '@/types/room';
 import { Box, Container, Typography } from '@mui/material';
-import axios, { AxiosResponse } from 'axios';
+import { motion } from 'framer-motion';
 import { JSX, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { validate } from 'uuid';
 import { LoadingPage } from './loading-page';
 
+const quotes = [
+  'Seamless collaborative coding.',
+  'Your AI-powered coding companion.',
+  'Code together, anytime.',
+  'Real-time coding, real-time innovation.',
+  'Where collaboration meets code.',
+  'Work together, build better.',
+  'Merging ideas, building solutions.',
+  'Code, collaborate, conquer.',
+  'Bridging minds through code.',
+  'Connect, collaborate, create.',
+];
+
 const HomePage = (): JSX.Element => {
   const { userDetails, isLoading, error } = useUser();
   const navigate = useNavigate();
   const [roomId, setRoomId] = useState<string>('');
-  const [isPrivate, _setIsPrivate] = useState<boolean>(false);
-  const [invitedUsers, _setInvitedUsers] = useState<string[]>([]);
-  const [isCreatingRoom, setIsCreatingRoom] = useState<boolean>(false);
-
-  const handleCreateRoom = async () => {
-    setIsCreatingRoom(true);
-    try {
-      const response: AxiosResponse<Room> = await axios.post(
-        `${import.meta.env.VITE_API_URL}/v1/room`,
-        {
-          ownerUuid: userDetails?.id,
-          isPrivate,
-          invitedUsers,
-          lastLanguage: DEFAULT_LANGUAGE.value,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        },
-      );
-
-      if (response.status === 401) {
-        localStorage.removeItem('accessToken');
-        navigate(ROUTES.LOGIN);
-        return;
-      }
-
-      if (response.status === 201) {
-        navigate(`${ROUTES.EDITOR}/${response.data.id}`);
-        return;
-      } else {
-        toast.error('Failed to create room', {
-          description: response.statusText,
-        });
-        return;
-      }
-    } catch (error: any) {
-      toast.error('Failed to create room', {
-        description: error.message,
-      });
-    } finally {
-      setIsCreatingRoom(false);
-    }
-  };
+  const [quote, setQuote] = useState<string>(
+    quotes[Math.floor(Math.random() * quotes.length)],
+  );
 
   useEffect(() => {
     if (error) {
@@ -72,6 +39,14 @@ const HomePage = (): JSX.Element => {
       navigate(ROUTES.LOGIN);
     }
   }, [error, navigate]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setQuote(quotes[Math.floor(Math.random() * quotes.length)]);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (isLoading) return <LoadingPage message="Fetching user details" />;
 
@@ -93,54 +68,123 @@ const HomePage = (): JSX.Element => {
           gap: '2rem',
         }}
       >
-        <Typography variant="h2" component="h1" gutterBottom>
-          Welcome to Collaborative Code Editor
-        </Typography>
-        <Typography variant="h5" component="h2" gutterBottom>
-          A real-time collaborative platform for coding together
-        </Typography>
-        <Typography variant="body1" color="bisque">
-          Start coding with your team in real-time. Create or join a session to
-          begin collaborating.
-        </Typography>
-        <div className="flex gap-4 min-w-2xl flex-wrap justify-center items-center">
-          <Button
-            variant="outline"
-            onClick={handleCreateRoom}
-            disabled={isCreatingRoom}
-            className="text-black hover:bg-accent-foreground hover:text-white active:scale-95 transition-all duration-300 cursor-pointer"
-          >
-            {isCreatingRoom ? 'Creating...' : CREATE_ROOM}
-          </Button>
-          <form
-            onSubmit={e => {
-              e.preventDefault();
-              if (validate(roomId)) navigate(`${ROUTES.EDITOR}/${roomId}`);
-              else
-                toast.error('Invalid room id', {
-                  description: 'Please enter a valid room id',
-                  descriptionClassName: 'text-white',
-                  style: {
-                    backgroundColor: 'red',
-                    color: 'white',
-                  },
-                });
+        <Box
+          sx={{
+            maxWidth: 600,
+            textAlign: 'center',
+            mb: 4,
+            transition: 'all 0.3s ease',
+          }}
+        >
+          <Typography
+            variant="h4"
+            sx={{
+              fontStyle: 'italic',
+              fontWeight: 500,
+              color: '#94a3b8',
+              maxWidth: 700,
+              fontSize: { xs: '1.2rem', sm: '1.8rem' },
+              lineHeight: 1.5,
             }}
             className="flex w-full gap-2"
           >
-            <Input
-              placeholder="Enter room id"
-              value={roomId}
-              onChange={e => setRoomId(e.target.value)}
-            />
-            <Button
-              type="submit"
-              className="cursor-pointer hover:bg-white hover:text-black active:scale-95 transition-all duration-300"
-            >
-              Join Room
-            </Button>
-          </form>
-        </div>
+            “{quote}”
+          </Typography>
+        </Box>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        >
+          <Card className="w-full h-full max-w-md bg-[#393f4c] text-white shadow-xl rounded-2xl border border-gray-700 p-6">
+            <CardHeader className="text-2xl font-semibold text-center mb-4">
+              Choose how you want to collaborate
+            </CardHeader>
+
+            <CardFooter className="flex flex-col gap-6 items-center p-0">
+              {/* Development Button */}
+              <div className="flex flex-col items-center gap-2 w-full">
+                <Button
+                  onClick={() => navigate(ROUTES.DEVELOPER)}
+                  className="w-60 rounded-xl px-6 py-3 text-lg font-semibold text-[black] transition transform hover:scale-105 cursor-pointer"
+                  style={{
+                    background:
+                      'linear-gradient(to right, rgb(28, 156, 253), #60d0ff)',
+                  }}
+                >
+                  Development
+                </Button>
+                <p className="text-sm text-gray-400 text-center">
+                  Choose this if you are building or testing code together.
+                </p>
+              </div>
+
+              {/* Interview Button */}
+              <div className="flex flex-col items-center gap-2 w-full">
+                <Button
+                  onClick={() => navigate(ROUTES.INTERVIEW)}
+                  className="w-60 rounded-xl px-6 py-3 text-lg font-semibold text-[black] transition transform hover:scale-105 cursor-pointer"
+                  style={{
+                    background:
+                      'linear-gradient(to right, rgb(28, 156, 253), #60d0ff)',
+                  }}
+                >
+                  Interview
+                </Button>
+                <p className="text-sm text-gray-400 text-center">
+                  Choose this if you are conducting or attending technical
+                  interviews.
+                </p>
+              </div>
+
+              {/* Directly Join */}
+              <div className="flex flex-col items-center gap-2 w-full">
+                <form
+                  className="flex gap-2 flex-1 w-full items-center justify-center"
+                  onSubmit={e => {
+                    e.preventDefault();
+
+                    if (!roomId) return;
+                    if (!validate(roomId)) {
+                      toast.error(
+                        'Invalid room ID. Please enter a valid UUID.',
+                        {
+                          description: 'Room ID must be a valid UUID.',
+                          style: {
+                            background: 'red',
+                            color: 'white',
+                          },
+                        },
+                      );
+                    }
+
+                    navigate(`${ROUTES.EDITOR}/${roomId}`);
+                  }}
+                >
+                  <Input
+                    className="w-full flex-4 rounded-xl px-2 py-2 text-lg font-semibold text-[black]"
+                    style={{
+                      background:
+                        'linear-gradient(to right, rgb(28, 156, 253), #60d0ff)',
+                    }}
+                    onChange={e => setRoomId(e.target.value)}
+                  />
+                  <Button
+                    variant={'outline'}
+                    className="flex-1 text-black hover:text-white hover:bg-black active:scale-105 transition-all duration-200 cursor-pointer"
+                    type="submit"
+                    disabled={!roomId || !validate(roomId)}
+                  >
+                    Join Room
+                  </Button>
+                </form>
+                <p className="text-sm text-gray-400 text-center">
+                  Enter the room ID to join an existing session.
+                </p>
+              </div>
+            </CardFooter>
+          </Card>
+        </motion.div>
       </Box>
     </Container>
   );
