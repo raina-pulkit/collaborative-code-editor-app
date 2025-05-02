@@ -36,10 +36,12 @@ export const CreateQuestionModal: React.FC<CreateQuestionProps> = ({
         }),
       );
 
-      const response = await fetch('http://localhost:3030/questions', {
+      const response = await fetch(`${process.env.VITE_API_URL}/questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({
           title,

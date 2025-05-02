@@ -11,11 +11,20 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 export const InviteDevelopers = () => {
   const [developers, setDevelopers] = useState<string[]>([]);
   const [inputDeveloper, setInputDeveloper] = useState('');
-  const [isPrivate, _setIsPrivate] = useState<boolean>(false);
+  const [isPrivate, setIsPrivate] = useState<boolean | undefined>(undefined);
   const [isCreatingRoom, setIsCreatingRoom] = useState<boolean>(false);
   const { userDetails } = useUser();
   const navigate = useNavigate();
@@ -38,15 +47,13 @@ export const InviteDevelopers = () => {
       return;
     }
 
+    if (isPrivate === undefined) {
+      toast.error('Please select a room type.');
+      return;
+    }
+
     setLoading(true);
     setIsCreatingRoom(true);
-
-    console.log('Creating Room with Payload:', {
-      ownerUuid: userDetails?.id,
-      isPrivate,
-      invitedUsers: developers,
-      lastLanguage: DEFAULT_LANGUAGE.value,
-    });
 
     try {
       // Create Room
@@ -94,6 +101,8 @@ export const InviteDevelopers = () => {
         {
           headers: {
             'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         },
       );
@@ -160,7 +169,7 @@ export const InviteDevelopers = () => {
             </div>
           </div>
 
-          <div className="flex justify-center mt-8">
+          <div className="flex justify-center mt-8 gap-2">
             <Button
               onClick={handleCreateRoomAndInvite}
               disabled={isCreatingRoom}
@@ -172,6 +181,19 @@ export const InviteDevelopers = () => {
             >
               {isCreatingRoom ? 'Creating...' : 'Invite & Create Room'}
             </Button>
+
+            <Select onValueChange={value => setIsPrivate(value === 'private')}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Room Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Room Type</SelectLabel>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
