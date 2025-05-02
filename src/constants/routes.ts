@@ -7,6 +7,11 @@ export const ROUTES = {
   PROFILE: ':id/profile',
   ERROR: '/error',
   EDITOR: '/editor',
+  INTERVIEW: '/interview',
+  SELECTQUESTION: '/select-question',
+  INVITE: '/invite',
+  ROOMCODE: '/room-code',
+  DEVELOPER: '/developer',
 };
 
 export const NESTED_ROUTES = {
