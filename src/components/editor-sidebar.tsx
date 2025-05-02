@@ -359,6 +359,9 @@ const LeaveButton = ({
 
         navigate(ROUTES.HOME);
       }}
+      onMouseOver={() => {
+        console.log('Mouse over LeaveButton');
+      }}
     >
       {message || 'Leave Room'}
     </Button>
@@ -374,7 +377,12 @@ const PopoverLeaveButton = ({
   roomId: string;
   userDetails: User | undefined;
 }) => (
-  <div className="flex flex-col gap-2 border-4 border-black py-5 px-2 rounded-lg">
+  <div
+    className="flex flex-col gap-2 border-4 border-black py-5 px-2 rounded-lg pointer-events-auto"
+    onMouseOver={() => {
+      console.log('Mouse over LeaveButton');
+    }}
+  >
     <LeaveButton
       socketRef={socketRef}
       userDetails={userDetails}
