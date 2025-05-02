@@ -15,7 +15,13 @@ import { JSX } from 'react';
 import { FaCodeBranch } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
-export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
+export const Header = ({
+  imgSource,
+  githubId,
+}: {
+  imgSource?: string;
+  githubId?: number;
+}): JSX.Element => {
   const navigate = useNavigate();
 
   return (
@@ -84,7 +90,11 @@ export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE)}>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(ROUTES.PROFILE.replace(':id', `${githubId}`))
+                }
+              >
                 <User />
                 <span>Profile</span>
                 <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
