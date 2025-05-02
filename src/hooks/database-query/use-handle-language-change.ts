@@ -10,7 +10,7 @@ const handleLanguageChange = async ({
   const response = await fetch(
     `${import.meta.env.VITE_API_URL}/v1/room/${roomId}`,
     {
-      method: 'PATCH',
+      method: 'PUT',
       mode: 'cors',
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
