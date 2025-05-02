@@ -10,6 +10,10 @@ const ProfilePage = lazy(() => import('./pages/profile-page'));
 const ErrorPage = lazy(() => import('./pages/error-page'));
 const EditorPageContainer = lazy(() => import('./pages/editor-page-container'));
 const DeveloperPage = lazy(() => import('./pages/developer-page'));
+const InterviewPage = lazy(() => import('./pages/interview-page'));
+const SelectQuestionPage = lazy(() => import('./pages/select-question-page'));
+const InvitePage = lazy(() => import('./pages/invite-page'));
+const RoomCodePage = lazy(() => import('./pages/room-code'));
 
 export interface RouteDetails {
   path: string;
@@ -64,6 +68,26 @@ export const homeRoutes: RouteDetails[] = [
   {
     path: ROUTES.DEVELOPER,
     component: DeveloperPage,
+    children: [],
+  },
+  {
+    path: ROUTES.INTERVIEW,
+    component: InterviewPage,
+    children: [],
+  },
+  {
+    path: ROUTES.SELECTQUESTION,
+    component: SelectQuestionPage,
+    children: [],
+  },
+  {
+    path: ROUTES.INVITE,
+    component: InvitePage,
+    children: [],
+  },
+  {
+    path: ROUTES.ROOMCODE,
+    component: RoomCodePage,
     children: [],
   },
 ];
