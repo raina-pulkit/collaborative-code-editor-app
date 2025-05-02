@@ -1,4 +1,4 @@
-import { InviteDevelopers } from '@/components/developer';
+import { InviteDevelopers } from '@/components/invite-developers';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';
 import { Box, Container } from '@mui/material';
