@@ -64,6 +64,7 @@ const HomePage = (): JSX.Element => {
           minHeight: 'calc(100vh - 98px)',
           textAlign: 'center',
           padding: '2rem',
+          color: 'white',
           gap: '2rem',
         }}
       >
