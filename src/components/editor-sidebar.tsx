@@ -3,12 +3,12 @@ import { ROUTES } from '@/constants/routes';
 import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/constants/sidebar-options';
 import { TYPING_DEBOUNCE } from '@/constants/utils';
 import { useUser } from '@/context/user-context';
+import { useHandleLanguageChange } from '@/hooks/database-query/use-handle-language-change';
 import { languageAtom, themeAtom } from '@/jotai/atoms';
 import { User } from '@/types/member-profile/user';
 import { Room } from '@/types/room';
 import { disconnectSocket } from '@/utils/socket';
 import { Box } from '@mui/material';
-import axios from 'axios';
 import { useAtom } from 'jotai';
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -162,6 +162,7 @@ const LanguageSelector = ({
 }) => {
   const [lang, setLang] = useAtom(languageAtom);
   const { userDetails } = useUser();
+  const { mutate: handleLanguageChangeMutation } = useHandleLanguageChange();
 
   useEffect(() => {
     if (!firstRender.current) return;
@@ -193,35 +194,31 @@ const LanguageSelector = ({
 
     // Update the language of the room in the database
     try {
-      const response = await axios.patch(
-        `${import.meta.env.VITE_API_URL}/v1/room/${roomId}`,
+      handleLanguageChangeMutation(
         {
+          roomId,
           lastLanguage: value,
         },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'application/json',
-            'Allow-Control-Allow-Origin': '*',
+          onSuccess: () => {
+            toast.success('Language updated successfully');
+
+            const newLabel =
+              LANGUAGE_OPTIONS.find(item => item.value === value)?.label ||
+              lang.defaultLabel;
+            setLang({
+              ...lang,
+              currValue: value,
+              currLabel: newLabel,
+            });
+          },
+          onError: (error: Error) => {
+            toast.error('Failed to update language', {
+              description: error.message,
+            });
           },
         },
       );
-
-      if (response.status === 200) {
-        toast.success('Language updated successfully');
-
-        // Update global state only after successful API call
-        const newLabel =
-          LANGUAGE_OPTIONS.find(item => item.value === value)?.label ||
-          lang.defaultLabel;
-        setLang({
-          ...lang,
-          currValue: value,
-          currLabel: newLabel,
-        });
-      } else {
-        toast.error('Failed to update language');
-      }
     } catch (error: any) {
       toast.error('Failed to update language');
       console.error(error);
