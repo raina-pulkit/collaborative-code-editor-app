@@ -12,7 +12,7 @@ import { AvatarImage } from '@radix-ui/react-avatar';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { LogOut, User } from 'lucide-react';
 import { JSX } from 'react';
-import { FaCodeBranch } from 'react-icons/fa6'; // ✅ Import from react-icons
+import { FaCodeBranch } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
 export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
@@ -76,7 +76,7 @@ export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
         }}
       >
         <DropdownMenu>
-          <DropdownMenuTrigger asChild className="cursor-pointer">
+          <DropdownMenuTrigger asChild className="select-none">
             <Avatar className="w-8 h-8 border-2 border-white">
               <AvatarImage src={imgSource} className="object-cover" />
               <AvatarFallback className="text-xs">CN</AvatarFallback>
@@ -102,13 +102,6 @@ export const Header = ({ imgSource }: { imgSource?: string }): JSX.Element => {
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Typography
-          variant="body1"
-          component="span"
-          sx={{ color: '#494848', fontWeight: 500, fontSize: '0.8rem' }}
-        >
-          About
-        </Typography>
       </Box>
     </Box>
   );

@@ -5,14 +5,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useGetQuestions } from '@/hooks/database-query/use-get-questions';
 import { LoadingPage } from '@/pages/loading-page';
+import { Question } from '@/types/questions';
 import { useState } from 'react';
-
-type Question = {
-  id: number;
-  title: string;
-  description: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-};
 
 export const QuestionSelector = () => {
   const [step, setStep] = useState<'questions' | 'invite'>('questions');
