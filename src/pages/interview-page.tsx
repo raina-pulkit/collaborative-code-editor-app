@@ -1,4 +1,3 @@
-// src/pages/interview-page.tsx
 import { InterviewComp } from '@/components/interview';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';

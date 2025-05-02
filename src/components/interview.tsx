@@ -4,9 +4,8 @@ import { ROUTES } from '@/constants/routes';
 import { Box, Container } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-export const InterviewComp = () => {
-  // const { userDetails, isLoading, error } = useUser();
 
+export const InterviewComp = () => {
   const navigate = useNavigate();
 
   return (

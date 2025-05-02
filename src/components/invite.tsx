@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -51,45 +49,6 @@ export const InviteParticipants = () => {
     }
   };
 
-  // const handleInvite = async () => {
-  //   if (interviewees.length === 0) {
-  //     toast.error('Please add at least one interviewee and interviewer.');
-  //     return;
-  //   }
-
-  //   try {
-  //     setLoading(true);
-
-  //     const res = await axios.post(
-  //       `${import.meta.env.VITE_API_URL}/send-invite`,
-  //       {
-  //         interviewees,
-  //         interviewers,
-  //       },
-  //       {
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //       },
-  //     );
-  //     console.log('Sending payload:', { interviewees, interviewers });
-  //     console.log('Response:', res.data);
-
-  //     if (res.status === 200) {
-  //       toast.success('Invitations sent successfully!');
-  //       setInterviewees([]);
-  //       setInterviewers([]);
-  //     } else {
-  //       toast.error('Failed to send invites.');
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error('Something went wrong. Try again.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleCreateRoomAndInvite = async () => {
     if (interviewees.length === 0) {
       toast.error('Please add at least one interviewee.');
@@ -131,9 +90,8 @@ export const InviteParticipants = () => {
         return;
       }
 
-      if (roomResponse.status === 201) {
-        // navigate(`${ROUTES.EDITOR}/${roomResponse.data.id}`);
-        console.log('Room created successfully!');
+      if (roomResponse.status !== 201) {
+        toast.info('Room created successfully!');
       } else {
         toast.error('Failed to create room', {
           description: roomResponse.statusText,
@@ -154,6 +112,8 @@ export const InviteParticipants = () => {
         },
         {
           headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            'Access-Control-Allow-Origin': '*',
             'Content-Type': 'application/json',
           },
         },

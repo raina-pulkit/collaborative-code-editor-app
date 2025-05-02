@@ -22,16 +22,16 @@ export const QuestionSelector = () => {
   const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
 
   const fetchQuestions = async () => {
-    // fetch('http://localhost:3030/questions')
-    //   .then(res => res.json())
-    //   .then(data => {
-    //     setQuestions(data);
-    //     setFilteredQuestions(data);
-    //   })
-    //   .catch(err => console.error('Error fetching questions:', err));
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/questions`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        },
       );
       const data = response.data;
       setQuestions(data);

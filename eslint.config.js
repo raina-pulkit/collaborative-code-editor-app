@@ -70,7 +70,6 @@ export default [
           semi: true,
           arrowParens: 'avoid',
           bracketSpacing: true,
-          endOfLine: 'auto',
           endOfLine: 'auto'
         },
       ],

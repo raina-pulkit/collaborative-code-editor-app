@@ -1,4 +1,3 @@
-// src/pages/interview-page.tsx
 import { InviteDevelopers } from '@/components/developer';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';

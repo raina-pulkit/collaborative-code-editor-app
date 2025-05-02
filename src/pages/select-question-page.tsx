@@ -1,4 +1,3 @@
-// src/pages/interview-page.tsx
 import { QuestionSelector } from '@/components/select_questions';
 import { useUser } from '@/context/user-context';
 import { Header } from '@/custom/header';

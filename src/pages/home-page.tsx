@@ -8,7 +8,6 @@ import { motion } from 'framer-motion';
 import { JSX, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoadingPage } from './loading-page';
-// import { DrawingCanvas } from './demo';
 
 const HomePage = (): JSX.Element => {
   const quotes = [
@@ -61,7 +60,6 @@ const HomePage = (): JSX.Element => {
           minHeight: 'calc(100vh - 98px)',
           textAlign: 'center',
           padding: '2rem',
-          // color: 'white',
           gap: '2rem',
         }}
       >
